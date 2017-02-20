@@ -31,7 +31,7 @@
                             <dependencyReducedPomLocation>
                                 ${java.io.tmpdir}/dependency-reduced-pom.xml
                             </dependencyReducedPomLocation>
-                            <finalName>CampusLiveStudent_1.$pom_version</finalName>
+                            <finalName>CampusLiveStudent</finalName>
                             <relocations>
                                 <relocation>
                                     <pattern>com.acme.coyote</pattern>

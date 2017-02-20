@@ -18,6 +18,7 @@ import javafx.stage.Stage;
 
 public class Display extends Application{
 
+    //test
     private ConnectionHandler connectionHandler = new ConnectionHandler();
     private Stage stage;
     private ImageView loginLogoImageView;

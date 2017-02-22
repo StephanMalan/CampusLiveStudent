@@ -37,15 +37,12 @@ public class Display extends Application{
     private ProgressIndicator waitIndicator;
     private Button loginButton;
     private VBox loginPane;
-    private Text classesText;
-    private ComboBox<String> classesComboBox;
     private Text selectedClassText;
     private Button selectedClassResultsButton;
     private Button selectedClassContactLecturerButton;
     private HBox selectedClassActionsPane;
     private ListView<?> selectedClassFilesListView;
     private VBox selectedClassPane;
-    private VBox classPane;
 
     private TabPane tabPane;
     private StackPane headingPane;
@@ -86,7 +83,7 @@ public class Display extends Application{
         loginLogoImageView.setFitWidth(250);
         studentNumberTextField = new TextField();
         studentNumberTextField.setPromptText("Student Number");
-        studentNumberTextField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -40%);" +
+        studentNumberTextField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -45%);" +
                 " -fx-font-size: 12pt;" +
                 " -fx-text-fill: black;" +
                 " -fx-font-family: \"Verdana\";" +
@@ -103,7 +100,7 @@ public class Display extends Application{
         studentNumberTextField.setPadding(new Insets(5, 5, 5, 30));
         passwordField = new PasswordField();
         passwordField.setPromptText("Password");
-        passwordField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -40%);" +
+        passwordField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -45%);" +
                 " -fx-font-size: 12pt;" +
                 " -fx-text-fill: black;" +
                 " -fx-font-family: \"Verdana\";" +
@@ -194,34 +191,26 @@ public class Display extends Application{
         loginPane.setPadding(new Insets(10));
         loginPane.setMaxSize(500, 500);
 
-        //Setup classes pane
-        classesText = new Text("My Classes");
-        classesText.setStyle("-fx-font-size: 42pt;" +
-                " -fx-text-fill: black;" +
-                " -fx-font-family: \"Verdana\";" +
-                " -fx-font-weight: bold;" +
-                " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
-                " -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );");
-        classesComboBox = new ComboBox<>(FXCollections.observableList(Arrays.asList(new String[]{"Software Development Project 3", "Advanced Database", "Object Orientated System Analysis and Design"})));
-        classesComboBox.getSelectionModel().select(0);
-        classesComboBox.setOnAction(e -> {
-            selectedClassText.setText(classesComboBox.getSelectionModel().getSelectedItem());
-        });
-        selectedClassText = new Text(classesComboBox.getSelectionModel().getSelectedItem());
+        //Setup selected class pane
+        selectedClassText = new Text("Software Development Project Year 3");
         selectedClassText.setStyle("-fx-font-size: 28pt;" +
                 " -fx-text-fill: black;" +
                 " -fx-font-family: \"Verdana\";" +
                 " -fx-font-weight: bold;" +
                 " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
                 " -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );");
-        selectedClassResultsButton = new Button("R");
-        selectedClassResultsButton.setStyle(" -fx-background-radius: 100, 100, 100, 100;" +
-                " -fx-background-color: #4287a7;");
-        selectedClassResultsButton.setMinSize(75, 75);
-        selectedClassContactLecturerButton = new Button("C");
-        selectedClassContactLecturerButton.setStyle(" -fx-background-radius: 100, 100, 100, 100;" +
-                " -fx-background-color: #4287a7;");
-        selectedClassContactLecturerButton.setMinSize(75, 75);
+        selectedClassResultsButton = new Button("My Results");
+        selectedClassResultsButton.setStyle(" -fx-background-radius: 25;" +
+                " -fx-background-color: rgba(66, 135, 167, .7);" +
+                " -fx-font-family: Verdana;" +
+                " -fx-font-size: 22;");
+        selectedClassResultsButton.setMinSize(200, 50);
+        selectedClassContactLecturerButton = new Button("Contact Lecturer");
+        selectedClassContactLecturerButton.setStyle(" -fx-background-radius: 25;" +
+                " -fx-background-color: rgba(66, 135, 167, .7);" +
+                " -fx-font-family: Verdana;" +
+                " -fx-font-size: 22;");
+        selectedClassContactLecturerButton.setMinSize(200, 50);
         selectedClassActionsPane = new HBox(selectedClassResultsButton, selectedClassContactLecturerButton);
         selectedClassActionsPane.setAlignment(Pos.CENTER);
         selectedClassActionsPane.setSpacing(50);
@@ -230,18 +219,16 @@ public class Display extends Application{
                 " -fx-control-inner-background: transparent;");
         selectedClassPane = new VBox(selectedClassText, selectedClassActionsPane, selectedClassFilesListView);
         selectedClassPane.setAlignment(Pos.CENTER);
-        selectedClassPane.setSpacing(10);
+        selectedClassPane.setSpacing(20);
         selectedClassPane.setPadding(new Insets(25, 250, 50, 250));
         VBox.setVgrow(selectedClassFilesListView, Priority.ALWAYS);
-        classPane = new VBox(classesText, classesComboBox, selectedClassPane);
-        classPane.setAlignment(Pos.CENTER);
-        classPane.setSpacing(10);
-        classPane.setPadding(new Insets(25));
-        VBox.setVgrow(selectedClassPane, Priority.ALWAYS);
 
         //Setup tab pane
-        Tab classesTab = new Tab("My Classes", classPane);
-        tabPane = new TabPane(classesTab);
+        Tab classesTab = new Tab("My Classes", selectedClassPane);
+        classesTab.setClosable(false);
+        Tab timetableTab = new Tab("My Timetable", new Pane());
+        timetableTab.setClosable(false);
+        tabPane = new TabPane(classesTab, timetableTab);
 
         //Setup heading pane
         headingPane = new StackPane();
@@ -249,7 +236,7 @@ public class Display extends Application{
                 " -fx-background-size: auto 100%;" +
                 " -fx-background-position: center;" +
                 " -fx-background-repeat: no-repeat;" +
-                " -fx-background-color: #4287a7;" +
+                " -fx-background-color: linear-gradient(rgba(66, 135, 167, .9), rgba(66, 135, 167, .7));" +
                 " -fx-accent: white");
         headingPane.setMaxHeight(150);
         headingPane.setMinHeight(100);
@@ -257,6 +244,7 @@ public class Display extends Application{
         //Setup student pane
         studentPane = new VBox(headingPane, tabPane);
         VBox.setVgrow(headingPane, Priority.ALWAYS);
+        VBox.setVgrow(tabPane, Priority.ALWAYS);
 
         //Setup background pane
         backgroundPane = new StackPane();
@@ -269,11 +257,12 @@ public class Display extends Application{
         backgroundPane.setEffect(new GaussianBlur(10000));
 
         //Setup content pane
-        contentPane = new StackPane(backgroundPane, loginPane); //TODO loginpane
+        contentPane = new StackPane(backgroundPane, loginPane); //TODO
         contentPane.setAlignment(Pos.CENTER);
 ;
         //Setup scene
         scene = new Scene(contentPane);
+        scene.getStylesheets().add(getClass().getClassLoader().getResource("CampusLiveStyle.css").toExternalForm());
 
         //Select and show scene
         stage.setScene(scene);

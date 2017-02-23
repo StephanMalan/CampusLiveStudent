@@ -20,10 +20,12 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import net.ddns.swooosh.campuslivestudent.models.StudentClass;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 
 public class Display extends Application{
 
@@ -40,9 +42,10 @@ public class Display extends Application{
     private VBox loginPane;
     private Text selectedClassText;
     private Button selectedClassResultsButton;
+    private ComboBox<StudentClass> selectedClassComboBox;
     private Button selectedClassContactLecturerButton;
     private HBox selectedClassActionsPane;
-    private ListView<?> selectedClassFilesListView;
+    private ListView<String> selectedClassFilesListView;
     private VBox selectedClassPane;
 
     private Text timetableText;
@@ -65,6 +68,8 @@ public class Display extends Application{
         stage = primaryStage;
         stage.setTitle("Campus Live Student");
         stage.getIcons().addAll(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png")));
+        stage.setMaxHeight(1080);
+        stage.setMaxWidth(1920);
         stage.setMaximized(true);
 
         //Setup tooltip delays
@@ -209,18 +214,54 @@ public class Display extends Application{
                 " -fx-font-family: Verdana;" +
                 " -fx-font-size: 22;");
         selectedClassResultsButton.setMinSize(200, 50);
+        selectedClassComboBox = new ComboBox<>(FXCollections.observableList(connectionHandler.getClasses()));
+        selectedClassComboBox.getSelectionModel().select(3);
+        selectedClassComboBox.setStyle(" -fx-background-radius: 25;" +
+                " -fx-background-color: rgba(66, 135, 167, .7);" +
+                " -fx-font-family: Verdana;" +
+                " -fx-font-size: 28;");
+        selectedClassComboBox.setMinSize(200, 50);
+        selectedClassComboBox.setOnAction(e -> {
+            selectedClassText.setText(selectedClassComboBox.getSelectionModel().getSelectedItem().toString());
+        });
+        //TODO center align combo box
         selectedClassContactLecturerButton = new Button("Contact Lecturer");
         selectedClassContactLecturerButton.setStyle(" -fx-background-radius: 25;" +
                 " -fx-background-color: rgba(66, 135, 167, .7);" +
                 " -fx-font-family: Verdana;" +
                 " -fx-font-size: 22;");
         selectedClassContactLecturerButton.setMinSize(200, 50);
-        selectedClassActionsPane = new HBox(selectedClassResultsButton, selectedClassContactLecturerButton);
+        selectedClassActionsPane = new HBox(selectedClassResultsButton, selectedClassComboBox, selectedClassContactLecturerButton);
         selectedClassActionsPane.setAlignment(Pos.CENTER);
         selectedClassActionsPane.setSpacing(50);
-        selectedClassFilesListView = new ListView<>(FXCollections.observableList(Arrays.asList(new String[]{"Study Guide", "Module Outline", "Assignment Specification"})));
+        selectedClassFilesListView = new ListView<>(FXCollections.observableList(Arrays.asList("+ Study Guide", "+ Module Outline", "- Assignment Specification")));
         selectedClassFilesListView.setStyle("-fx-background-color: rgba(66, 135, 167, .7);" +
-                " -fx-control-inner-background: transparent;");
+                " -fx-control-inner-background: transparent;" +
+                " -fx-background-radius: 15, 15, 15, 15;" +
+                " -fx-background-insets: -10;" +
+                " -fx-font-family: Verdana;" +
+                " -fx-font-size: 18");
+        selectedClassFilesListView.setCellFactory(lv -> {
+            ListCell<String> cell = new ListCell<>();
+            MenuItem openFileMenuItem = new MenuItem("Open File");
+            MenuItem exportFileMenuItem = new MenuItem("Export File");
+            MenuItem redownloadFileMenuItem = new MenuItem("Redownload File");
+            ContextMenu contextMenu = new ContextMenu(openFileMenuItem, exportFileMenuItem, redownloadFileMenuItem);
+            cell.textProperty().bind(cell.itemProperty());
+            cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
+                if (isNowEmpty) {
+                    cell.setContextMenu(null);
+                } else {
+                    cell.setContextMenu(contextMenu);
+                }
+            });
+            cell.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2) {
+                    System.out.println("Open file " + cell.textProperty());
+                }
+            });
+            return cell;
+        });
         selectedClassPane = new VBox(selectedClassText, selectedClassActionsPane, selectedClassFilesListView);
         selectedClassPane.setAlignment(Pos.CENTER);
         selectedClassPane.setSpacing(20);
@@ -277,6 +318,7 @@ public class Display extends Application{
         timetablePane.setSpacing(15);
         timetablePane.setPadding(new Insets(25));
         VBox.setVgrow(timetableGridPane, Priority.ALWAYS);
+        populateTimetable();
 
         //Setup tab pane
         Tab classesTab = new Tab("My Classes", selectedClassPane);
@@ -323,6 +365,27 @@ public class Display extends Application{
         stage.setScene(scene);
         stage.show();
 
+    }
+
+    private void populateTimetable() {
+        List<StudentClass> studentClasses = connectionHandler.getClasses();
+        for (StudentClass c : studentClasses) {
+            for (int i = c.getStartSlot(); i <= c.getEndSlot(); i++) {
+                Label label = new Label(c.getModuleName() + "\n" + c.getLecturerName());
+                label.setStyle("-fx-font-family: Verdana;" +
+                        " -fx-font-size: 12;");
+                label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                label.setMinSize(50, 50);
+                label.setWrapText(true);
+                label.setAlignment(Pos.CENTER);
+                label.setPadding(new Insets(5));
+                label.setOnMouseClicked(e -> {
+                    selectedClassComboBox.getSelectionModel().select(c);
+                    tabPane.getSelectionModel().select(0);
+                });
+                timetableGridPane.add(label, i, c.getDayOfWeek());
+            }
+        }
     }
 
     public static void main(String[] args) {

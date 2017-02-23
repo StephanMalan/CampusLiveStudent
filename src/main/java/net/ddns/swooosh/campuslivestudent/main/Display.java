@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -44,6 +45,9 @@ public class Display extends Application{
     private ListView<?> selectedClassFilesListView;
     private VBox selectedClassPane;
 
+    private Text timetableText;
+    private GridPane timetableGridPane;
+    private VBox timetablePane;
     private TabPane tabPane;
     private StackPane headingPane;
     private VBox studentPane;
@@ -223,10 +227,61 @@ public class Display extends Application{
         selectedClassPane.setPadding(new Insets(25, 250, 50, 250));
         VBox.setVgrow(selectedClassFilesListView, Priority.ALWAYS);
 
+        //Setup time table pane
+        timetableText = new Text("Timetable");
+        timetableText.setStyle("-fx-font-size: 28pt;" +
+                " -fx-text-fill: black;" +
+                " -fx-font-family: \"Verdana\";" +
+                " -fx-font-weight: bold;" +
+                " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
+                " -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );");
+        timetableGridPane = new GridPane();
+        ObservableList<ColumnConstraints> columnConstraints = FXCollections.observableArrayList();
+        for (int i = 0; i < 14; i++) {
+            ColumnConstraints col = new ColumnConstraints();
+            col.setPercentWidth(100 / 14);
+            columnConstraints.add(col);
+        }
+        ObservableList<RowConstraints> rowConstraints = FXCollections.observableArrayList();
+        for (int i = 0; i < 6; i++) {
+            RowConstraints row = new RowConstraints();
+            row.setPercentHeight(100 / 6);
+            rowConstraints.add(row);
+        }
+        timetableGridPane.getColumnConstraints().addAll(columnConstraints);
+        timetableGridPane.getRowConstraints().addAll(rowConstraints);
+        String[] weekdays = {"Mo", "Tue", "We", "Th", "Fr"};
+        for (int i = 0; i < 5; i++) {
+            Label label = new Label(weekdays[i]);
+            label.setStyle("-fx-font-family: Verdana;" +
+                    " -fx-font-size: 22;");
+            label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            label.setAlignment(Pos.CENTER);
+            label.setPadding(new Insets(5));
+            timetableGridPane.add(label, 0, i + 1);
+        }
+        String[] timeSlots = {"08:00 - 08:45", "09:00 - 09:45", "10:00 - 10:45", "11:00 - 11:45", "12:00 - 12:45", "13:00 - 13:45", "14:00 - 14:45", "15:00 - 15:45", "16:00 - 16:45", "17:00 - 17:45", "18:00 - 18:45", "18:45 - 19:30", "19:30 - 20:15"};
+        for (int i = 0; i < timeSlots.length; i++) {
+            Label label = new Label(timeSlots[i]);
+            label.setStyle("-fx-font-family: Verdana;" +
+                    " -fx-font-size: 12;");
+            label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            label.setAlignment(Pos.CENTER);
+            label.setWrapText(true);
+            label.setPadding(new Insets(5));
+            timetableGridPane.add(label, i + 1, 0);
+        }
+        timetableGridPane.setGridLinesVisible(true);
+        timetablePane = new VBox(timetableText, timetableGridPane);
+        timetablePane.setAlignment(Pos.CENTER);
+        timetablePane.setSpacing(15);
+        timetablePane.setPadding(new Insets(25));
+        VBox.setVgrow(timetableGridPane, Priority.ALWAYS);
+
         //Setup tab pane
         Tab classesTab = new Tab("My Classes", selectedClassPane);
         classesTab.setClosable(false);
-        Tab timetableTab = new Tab("My Timetable", new Pane());
+        Tab timetableTab = new Tab("My Timetable", timetablePane);
         timetableTab.setClosable(false);
         tabPane = new TabPane(classesTab, timetableTab);
 

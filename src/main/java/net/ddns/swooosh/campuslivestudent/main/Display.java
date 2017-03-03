@@ -21,6 +21,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import net.ddns.swooosh.campuslivestudent.models.StudentClass;
+import net.ddns.swooosh.campuslivestudent.models.StudentFiles;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -45,9 +46,8 @@ public class Display extends Application{
     private ComboBox<StudentClass> selectedClassComboBox;
     private Button selectedClassContactLecturerButton;
     private HBox selectedClassActionsPane;
-    private ListView<String> selectedClassFilesListView;
+    private ListView<StudentFiles> selectedClassFilesListView;
     private VBox selectedClassPane;
-
     private Text timetableText;
     private GridPane timetableGridPane;
     private VBox timetablePane;
@@ -66,7 +66,7 @@ public class Display extends Application{
 
         //Setup stage
         stage = primaryStage;
-        stage.setTitle("Campus Live Student");
+        stage.setTitle("Campus Live Student (On-Campus)");
         stage.getIcons().addAll(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png")));
         stage.setMaxHeight(1080);
         stage.setMaxWidth(1920);
@@ -87,9 +87,10 @@ public class Display extends Application{
         }
 
         //Setup Login pane
+        //TODO warning for caps lock
         loginLogoImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png")));
-        loginLogoImageView.setFitHeight(250);
-        loginLogoImageView.setFitWidth(250);
+        loginLogoImageView.setFitHeight(200);
+        loginLogoImageView.setFitWidth(200);
         studentNumberTextField = new TextField();
         studentNumberTextField.setPromptText("Student Number");
         studentNumberTextField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -45%);" +
@@ -196,77 +197,103 @@ public class Display extends Application{
         waitIndicator.setPrefSize(200, 200);
         loginPane = new VBox(loginLogoImageView, studentNumberTextField, passwordField, loginButton, forgotPasswordHyperlink);
         loginPane.setAlignment(Pos.CENTER);
-        loginPane.setSpacing(15);
+        loginPane.setSpacing(20);
         loginPane.setPadding(new Insets(10));
         loginPane.setMaxSize(500, 500);
 
         //Setup selected class pane
-        selectedClassText = new Text("Software Development Project Year 3");
-        selectedClassText.setStyle("-fx-font-size: 28pt;" +
+        selectedClassText = new Text();
+        selectedClassText.setStyle("-fx-font-size: 20pt;" +
                 " -fx-text-fill: black;" +
                 " -fx-font-family: \"Verdana\";" +
                 " -fx-font-weight: bold;" +
                 " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
                 " -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );");
-        selectedClassResultsButton = new Button("My Results");
-        selectedClassResultsButton.setStyle(" -fx-background-radius: 25;" +
-                " -fx-background-color: rgba(66, 135, 167, .7);" +
-                " -fx-font-family: Verdana;" +
-                " -fx-font-size: 22;");
-        selectedClassResultsButton.setMinSize(200, 50);
         selectedClassComboBox = new ComboBox<>(FXCollections.observableList(connectionHandler.getClasses()));
-        selectedClassComboBox.getSelectionModel().select(3);
-        selectedClassComboBox.setStyle(" -fx-background-radius: 25;" +
-                " -fx-background-color: rgba(66, 135, 167, .7);" +
+        selectedClassComboBox.setStyle(" -fx-background-radius: 5;" +
+                " -fx-background-color: transparent;" +
                 " -fx-font-family: Verdana;" +
-                " -fx-font-size: 28;");
-        selectedClassComboBox.setMinSize(200, 50);
-        selectedClassComboBox.setOnAction(e -> {
+                " -fx-font-size: 18;");
+        selectedClassComboBox.getSelectionModel().selectedItemProperty().addListener(e -> {
             selectedClassText.setText(selectedClassComboBox.getSelectionModel().getSelectedItem().toString());
         });
-        //TODO center align combo box
+        selectedClassComboBox.getSelectionModel().select(0);
+        selectedClassComboBox.setMinSize(50, 50);
+        selectedClassComboBox.setMaxSize(50, 50);
+        selectedClassResultsButton = new Button("My Results");
+        selectedClassResultsButton.setStyle(" -fx-background-radius: 25;" +
+                " -fx-border-radius: 25;" +
+                " -fx-border-width: 2;" +
+                " -fx-background-color: white;" +
+                " -fx-border-color: black;" +
+                " -fx-font-family: Verdana;" +
+                " -fx-font-weight: bold;" +
+                " -fx-font-size: 22;");
+        selectedClassResultsButton.setMinSize(250, 50);
         selectedClassContactLecturerButton = new Button("Contact Lecturer");
         selectedClassContactLecturerButton.setStyle(" -fx-background-radius: 25;" +
-                " -fx-background-color: rgba(66, 135, 167, .7);" +
+                " -fx-border-radius: 25;" +
+                " -fx-border-width: 2;" +
+                " -fx-background-color: white;" +
+                " -fx-border-color: black;" +
                 " -fx-font-family: Verdana;" +
+                " -fx-font-weight: bold;" +
                 " -fx-font-size: 22;");
-        selectedClassContactLecturerButton.setMinSize(200, 50);
-        selectedClassActionsPane = new HBox(selectedClassResultsButton, selectedClassComboBox, selectedClassContactLecturerButton);
+        selectedClassContactLecturerButton.setMinSize(250, 50);
+        selectedClassActionsPane = new HBox(selectedClassResultsButton, selectedClassContactLecturerButton);
         selectedClassActionsPane.setAlignment(Pos.CENTER);
         selectedClassActionsPane.setSpacing(50);
-        selectedClassFilesListView = new ListView<>(FXCollections.observableList(Arrays.asList("+ Study Guide", "+ Module Outline", "- Assignment Specification")));
+        selectedClassFilesListView = new ListView<>(FXCollections.observableList(Arrays.asList(new StudentFiles(1, 1, "Study Guide", 48), new StudentFiles(2, 1, "Assignment Specification", 48), new StudentFiles(3, 1, "Module Outline", 48))));
         selectedClassFilesListView.setStyle("-fx-background-color: rgba(66, 135, 167, .7);" +
                 " -fx-control-inner-background: transparent;" +
                 " -fx-background-radius: 15, 15, 15, 15;" +
                 " -fx-background-insets: -10;" +
                 " -fx-font-family: Verdana;" +
                 " -fx-font-size: 18");
-        selectedClassFilesListView.setCellFactory(lv -> {
-            ListCell<String> cell = new ListCell<>();
-            MenuItem openFileMenuItem = new MenuItem("Open File");
-            MenuItem exportFileMenuItem = new MenuItem("Export File");
-            MenuItem redownloadFileMenuItem = new MenuItem("Redownload File");
-            ContextMenu contextMenu = new ContextMenu(openFileMenuItem, exportFileMenuItem, redownloadFileMenuItem);
-            cell.textProperty().bind(cell.itemProperty());
-            cell.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
-                if (isNowEmpty) {
-                    cell.setContextMenu(null);
+        selectedClassFilesListView.setCellFactory((ListView<StudentFiles> param) -> new ListCell<StudentFiles>() {
+            @Override
+            protected void updateItem(StudentFiles file, boolean empty) {
+                super.updateItem(file, empty);
+                MenuItem openFileMenuItem = new MenuItem("Open File");
+                openFileMenuItem.setOnAction(e -> System.out.println("Open file " + textProperty()));
+                MenuItem exportFileMenuItem = new MenuItem("Export File");
+                MenuItem redownloadFileMenuItem = new MenuItem("Redownload File");
+                ContextMenu contextMenu = new ContextMenu(openFileMenuItem, exportFileMenuItem, redownloadFileMenuItem);
+                if (empty || file == null || file.getFileName() == null) {
+                    setText(null);
+                    setContextMenu(null);
+                    setGraphic(null);
                 } else {
-                    cell.setContextMenu(contextMenu);
+                    setText(file.getFileName());
+                    setContextMenu(contextMenu);
+                    ImageView savedImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Saved.png")));
+                    savedImageView.setFitHeight(24);
+                    savedImageView.setFitWidth(24);
+                    ImageView downloadImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Download.png")));
+                    downloadImageView.setFitHeight(24);
+                    downloadImageView.setFitWidth(24);
+                    if (file.getFileName().equals("Study Guide")) { //TODO
+                        setGraphic(savedImageView);
+                    } else {
+                        setGraphic(downloadImageView);
+                    }
                 }
-            });
-            cell.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2) {
-                    System.out.println("Open file " + cell.textProperty());
-                }
-            });
-            return cell;
+            }
         });
-        selectedClassPane = new VBox(selectedClassText, selectedClassActionsPane, selectedClassFilesListView);
-        selectedClassPane.setAlignment(Pos.CENTER);
+        selectedClassFilesListView.setMinWidth(300);
+        selectedClassFilesListView.setPrefWidth(1800);
+        HBox selectedClassHeadingPane = new HBox(selectedClassComboBox, selectedClassText);
+        selectedClassHeadingPane.setSpacing(5);
+        selectedClassHeadingPane.setAlignment(Pos.CENTER);
+        HBox selectedClassFilesPane = new HBox(selectedClassFilesListView);
+        HBox.setHgrow(selectedClassFilesPane, Priority.ALWAYS);
+        selectedClassFilesPane.setAlignment(Pos.CENTER);
+        selectedClassFilesPane.setPadding(new Insets(15, 150, 15, 150));
+        selectedClassPane = new VBox(selectedClassHeadingPane, selectedClassActionsPane, selectedClassFilesPane);
+        VBox.setVgrow(selectedClassFilesPane, Priority.ALWAYS);
         selectedClassPane.setSpacing(20);
-        selectedClassPane.setPadding(new Insets(25, 250, 50, 250));
-        VBox.setVgrow(selectedClassFilesListView, Priority.ALWAYS);
+        selectedClassPane.setPadding(new Insets(15));
+        selectedClassPane.setAlignment(Pos.CENTER);
 
         //Setup time table pane
         timetableText = new Text("Timetable");
@@ -280,23 +307,32 @@ public class Display extends Application{
         ObservableList<ColumnConstraints> columnConstraints = FXCollections.observableArrayList();
         for (int i = 0; i < 14; i++) {
             ColumnConstraints col = new ColumnConstraints();
-            col.setPercentWidth(100 / 14);
+            if (i == 0) {
+                col.setPercentWidth(9);
+            } else {
+                col.setPercentWidth(7);
+            }
             columnConstraints.add(col);
         }
         ObservableList<RowConstraints> rowConstraints = FXCollections.observableArrayList();
         for (int i = 0; i < 6; i++) {
             RowConstraints row = new RowConstraints();
-            row.setPercentHeight(100 / 6);
+            if (i == 0) {
+                row.setPercentHeight(10);
+            } else {
+                row.setPercentHeight(18);
+            }
             rowConstraints.add(row);
         }
         timetableGridPane.getColumnConstraints().addAll(columnConstraints);
         timetableGridPane.getRowConstraints().addAll(rowConstraints);
-        String[] weekdays = {"Mo", "Tue", "We", "Th", "Fr"};
+        String[] weekdays = {"Mon", "Tue", "Wed", "Thu", "Fri"};
         for (int i = 0; i < 5; i++) {
             Label label = new Label(weekdays[i]);
             label.setStyle("-fx-font-family: Verdana;" +
-                    " -fx-font-size: 22;");
-            label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                    " -fx-font-size: 26;");
+            label.setMaxSize(150, 150);
+            label.setMinSize(100, 100);
             label.setAlignment(Pos.CENTER);
             label.setPadding(new Insets(5));
             timetableGridPane.add(label, 0, i + 1);
@@ -306,19 +342,34 @@ public class Display extends Application{
             Label label = new Label(timeSlots[i]);
             label.setStyle("-fx-font-family: Verdana;" +
                     " -fx-font-size: 12;");
-            label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+            label.setMaxSize(150, 150);
+            label.setMinSize(100, 100);
             label.setAlignment(Pos.CENTER);
             label.setWrapText(true);
             label.setPadding(new Insets(5));
             timetableGridPane.add(label, i + 1, 0);
         }
         timetableGridPane.setGridLinesVisible(true);
-        timetablePane = new VBox(timetableText, timetableGridPane);
+        timetableGridPane.setMaxSize(1900, 780);
+        timetableGridPane.setMinSize(1400, 500);
+        HBox timetableInnerPane = new HBox(timetableGridPane);
+        timetableInnerPane.setAlignment(Pos.CENTER);
+        timetableInnerPane.setStyle("-fx-border-color: black");
+        HBox.setHgrow(timetableInnerPane, Priority.ALWAYS);
+        ScrollPane timetableScrollPane = new ScrollPane(timetableInnerPane);
+        timetableScrollPane.setFitToHeight(true);
+        timetableScrollPane.setFitToWidth(true);
+        timetableScrollPane.setStyle("-fx-border-color: black");
+        timetablePane = new VBox(timetableText, timetableScrollPane);
         timetablePane.setAlignment(Pos.CENTER);
         timetablePane.setSpacing(15);
         timetablePane.setPadding(new Insets(25));
-        VBox.setVgrow(timetableGridPane, Priority.ALWAYS);
+        VBox.setVgrow(timetableScrollPane, Priority.ALWAYS);
+
         populateTimetable();
+
+        //Setup chat pane
+
 
         //Setup tab pane
         Tab classesTab = new Tab("My Classes", selectedClassPane);
@@ -336,10 +387,12 @@ public class Display extends Application{
                 " -fx-background-color: linear-gradient(rgba(66, 135, 167, .9), rgba(66, 135, 167, .7));" +
                 " -fx-accent: white");
         headingPane.setMaxHeight(150);
+        headingPane.setPrefHeight(150);
         headingPane.setMinHeight(100);
 
         //Setup student pane
         studentPane = new VBox(headingPane, tabPane);
+        studentPane.setAlignment(Pos.CENTER);
         VBox.setVgrow(headingPane, Priority.ALWAYS);
         VBox.setVgrow(tabPane, Priority.ALWAYS);
 
@@ -371,16 +424,17 @@ public class Display extends Application{
         List<StudentClass> studentClasses = connectionHandler.getClasses();
         for (StudentClass c : studentClasses) {
             for (int i = c.getStartSlot(); i <= c.getEndSlot(); i++) {
-                Label label = new Label(c.getModuleName() + "\n" + c.getLecturerName());
+                Label label = new Label(c.getModuleName() + "\n\nTM (" + c.getRoomNumber() + ")");
                 label.setStyle("-fx-font-family: Verdana;" +
-                        " -fx-font-size: 12;");
-                label.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-                label.setMinSize(50, 50);
+                        " -fx-font-size: 11;");
+                label.setMaxSize(150, 150);
+                label.setMinSize(100, 100);
                 label.setWrapText(true);
-                label.setAlignment(Pos.CENTER);
+                label.setAlignment(Pos.TOP_CENTER);
                 label.setPadding(new Insets(5));
                 label.setOnMouseClicked(e -> {
                     selectedClassComboBox.getSelectionModel().select(c);
+                    System.out.println(((Label) e.getSource()).getWidth());
                     tabPane.getSelectionModel().select(0);
                 });
                 timetableGridPane.add(label, i, c.getDayOfWeek());

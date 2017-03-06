@@ -1,29 +1,27 @@
 package net.ddns.swooosh.campuslivestudent.models;
 
-public class StudentClass {
+import javafx.collections.ObservableList;
 
-    private int classID;
+import java.io.Serializable;
+
+public class StudentClass implements Serializable {
+
     private String moduleName;
     private String moduleNumber;
-    private String roomNumber;
-    private String lecturerName;
-    private int dayOfWeek;
-    private int startSlot;
-    private int endSlot;
+    private String lecturerFirstName;
+    private String lecturerLastName;
+    private String lecturerNumber;
+    private String lecturerEmail;
+    private ObservableList<ClassTime> classTimes;
 
-    public StudentClass(int classID, String moduleName, String moduleNumber, String roomNumber, String lecturerName, int dayOfWeek, int startSlot, int endSlot) {
-        this.classID = classID;
+    public StudentClass(String moduleName, String moduleNumber, String lecturerFirstName, String lecturerLastName, String lecturerNumber, String lecturerEmail, ObservableList<ClassTime> classTimes) {
         this.moduleName = moduleName;
         this.moduleNumber = moduleNumber;
-        this.roomNumber = roomNumber;
-        this.lecturerName = lecturerName;
-        this.dayOfWeek = dayOfWeek;
-        this.startSlot = startSlot;
-        this.endSlot = endSlot;
-    }
-
-    public int getClassID() {
-        return classID;
+        this.lecturerFirstName = lecturerFirstName;
+        this.lecturerLastName = lecturerLastName;
+        this.lecturerNumber = lecturerNumber;
+        this.lecturerEmail = lecturerEmail;
+        this.classTimes = classTimes;
     }
 
     public String getModuleName() {
@@ -34,27 +32,23 @@ public class StudentClass {
         return moduleNumber;
     }
 
-    public String getRoomNumber() {
-        return roomNumber;
+    public String getLecturerFirstName() {
+        return lecturerFirstName;
     }
 
-    public String getLecturerName() {
-        return lecturerName;
+    public String getLecturerLastName() {
+        return lecturerLastName;
     }
 
-    public int getDayOfWeek() {
-        return dayOfWeek;
+    public String getLecturerNumber() {
+        return lecturerNumber;
     }
 
-    public int getStartSlot() {
-        return startSlot;
+    public String getLecturerEmail() {
+        return lecturerEmail;
     }
 
-    public int getEndSlot() {
-        return endSlot;
-    }
-
-    public String toString() {
-        return moduleName;
+    public ObservableList<ClassTime> getClassTimes() {
+        return classTimes;
     }
 }

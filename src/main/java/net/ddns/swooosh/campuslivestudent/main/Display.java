@@ -10,7 +10,12 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -18,19 +23,30 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import net.ddns.swooosh.campuslivestudent.models.StudentClass;
-import net.ddns.swooosh.campuslivestudent.models.StudentFiles;
+import net.ddns.swooosh.campuslivestudent.models.ClassAndResult;
+import net.ddns.swooosh.campuslivestudent.models.ClassTime;
+import net.ddns.swooosh.campuslivestudent.models.Student;
+import net.ddns.swooosh.campuslivestudent.models.StudentFile;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Scanner;
 
 public class Display extends Application{
 
+    private static final File APPLICATION_FOLDER = new File(System.getProperty("user.home") + "/AppData/Local/Swooosh/CampusLiveStudent");
+    private static final File LOCAL_CACHE = new File(APPLICATION_FOLDER.getAbsolutePath() + "/Local Cache");
     private ConnectionHandler connectionHandler = new ConnectionHandler();
+    private Student student = connectionHandler.getStudent();
     private volatile BooleanProperty running = new SimpleBooleanProperty(false);
     private volatile BooleanProperty result = new SimpleBooleanProperty(false);
     private Stage stage;
@@ -43,10 +59,10 @@ public class Display extends Application{
     private VBox loginPane;
     private Text selectedClassText;
     private Button selectedClassResultsButton;
-    private ComboBox<StudentClass> selectedClassComboBox;
+    private ComboBox<ClassAndResult> selectedClassComboBox;
     private Button selectedClassContactLecturerButton;
     private HBox selectedClassActionsPane;
-    private ListView<StudentFiles> selectedClassFilesListView;
+    private ListView<StudentFile> selectedClassFilesListView;
     private VBox selectedClassPane;
     private Text timetableText;
     private GridPane timetableGridPane;
@@ -58,15 +74,11 @@ public class Display extends Application{
     private StackPane contentPane;
     private Scene scene;
 
-    public Display() {
-
-    }
-
     public void start(Stage primaryStage) throws Exception {
 
         //Setup stage
         stage = primaryStage;
-        stage.setTitle("Campus Live Student (On-Campus)");
+        stage.setTitle("Campus Live Student (On-Campus) (" + student.getCampus() + ") " + getBuild());
         stage.getIcons().addAll(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png")));
         stage.setMaxHeight(1080);
         stage.setMaxWidth(1920);
@@ -209,20 +221,23 @@ public class Display extends Application{
                 " -fx-font-weight: bold;" +
                 " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
                 " -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );");
-        selectedClassComboBox = new ComboBox<>(FXCollections.observableList(connectionHandler.getClasses()));
+        selectedClassComboBox = new ComboBox<>(FXCollections.observableList(student.getClassAndResults()));
         selectedClassComboBox.setStyle(" -fx-background-radius: 5;" +
                 " -fx-background-color: transparent;" +
                 " -fx-font-family: Verdana;" +
                 " -fx-font-size: 18;");
         selectedClassComboBox.getSelectionModel().selectedItemProperty().addListener(e -> {
             selectedClassText.setText(selectedClassComboBox.getSelectionModel().getSelectedItem().toString());
+            if (selectedClassFilesListView != null) {
+                selectedClassFilesListView.setItems(selectedClassComboBox.getSelectionModel().getSelectedItem().getStudentClass().getFiles());
+            }
         });
         selectedClassComboBox.getSelectionModel().select(0);
         selectedClassComboBox.setMinSize(50, 50);
         selectedClassComboBox.setMaxSize(50, 50);
         selectedClassResultsButton = new Button("My Results");
-        selectedClassResultsButton.setStyle(" -fx-background-radius: 25;" +
-                " -fx-border-radius: 25;" +
+        selectedClassResultsButton.setStyle(" -fx-background-radius: 17;" +
+                " -fx-border-radius: 17;" +
                 " -fx-border-width: 2;" +
                 " -fx-background-color: white;" +
                 " -fx-border-color: black;" +
@@ -243,39 +258,80 @@ public class Display extends Application{
         selectedClassActionsPane = new HBox(selectedClassResultsButton, selectedClassContactLecturerButton);
         selectedClassActionsPane.setAlignment(Pos.CENTER);
         selectedClassActionsPane.setSpacing(50);
-        selectedClassFilesListView = new ListView<>(FXCollections.observableList(Arrays.asList(new StudentFiles(1, 1, "Study Guide", 48), new StudentFiles(2, 1, "Assignment Specification", 48), new StudentFiles(3, 1, "Module Outline", 48))));
+        selectedClassFilesListView = new ListView<>(selectedClassComboBox.getSelectionModel().getSelectedItem().getStudentClass().getFiles());
         selectedClassFilesListView.setStyle("-fx-background-color: rgba(66, 135, 167, .7);" +
                 " -fx-control-inner-background: transparent;" +
                 " -fx-background-radius: 15, 15, 15, 15;" +
                 " -fx-background-insets: -10;" +
                 " -fx-font-family: Verdana;" +
                 " -fx-font-size: 18");
-        selectedClassFilesListView.setCellFactory((ListView<StudentFiles> param) -> new ListCell<StudentFiles>() {
+        selectedClassFilesListView.setCellFactory((ListView<StudentFile> param) -> new ListCell<StudentFile>() {
             @Override
-            protected void updateItem(StudentFiles file, boolean empty) {
+            protected void updateItem(StudentFile file, boolean empty) {
                 super.updateItem(file, empty);
+                ImageView savedImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Saved.png")));
+                savedImageView.setFitHeight(24);
+                savedImageView.setFitWidth(24);
+                ImageView downloadImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Download.png")));
+                downloadImageView.setFitHeight(24);
+                downloadImageView.setFitWidth(24);
                 MenuItem openFileMenuItem = new MenuItem("Open File");
-                openFileMenuItem.setOnAction(e -> System.out.println("Open file " + textProperty()));
+                openFileMenuItem.setOnAction(event -> {
+                    File f;
+                    if ((f = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getClassID() + "/" + file.getFileName())).exists() && f.length() == file.getFileLength()) {
+                        try {
+                            Desktop.getDesktop().open(f);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
                 MenuItem exportFileMenuItem = new MenuItem("Export File");
+                exportFileMenuItem.setOnAction(event -> {
+                    try {
+                        DirectoryChooser dc = new DirectoryChooser();
+                        dc.setTitle("Choose Directory to export to");
+                        File f = dc.showDialog(stage);
+                        if (f != null) {
+                            File target = new File(f.getAbsolutePath() + "/" + file.getFileName());
+                            File toCopy = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getClassID() + "/" + file.getFileName());
+                            Files.copy(toCopy.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                            System.out.println("YAY");
+                            //TODO message
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                });
                 MenuItem redownloadFileMenuItem = new MenuItem("Redownload File");
-                ContextMenu contextMenu = new ContextMenu(openFileMenuItem, exportFileMenuItem, redownloadFileMenuItem);
+                ContextMenu savedContextMenu = new ContextMenu(openFileMenuItem, exportFileMenuItem, redownloadFileMenuItem);
+                MenuItem downloadFileMenuItem = new MenuItem("Download File");
+                ContextMenu downloadContextMenu = new ContextMenu(downloadFileMenuItem);
+                setOnMouseClicked(event -> {
+                    if (event.getClickCount() == 2) {
+                        File f;
+                        if ((f = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getClassID() + "/" + file.getFileName())).exists() && f.length() == file.getFileLength()) {
+                            try {
+                                Desktop.getDesktop().open(f);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
                 if (empty || file == null || file.getFileName() == null) {
                     setText(null);
                     setContextMenu(null);
                     setGraphic(null);
                 } else {
-                    setText(file.getFileName());
-                    setContextMenu(contextMenu);
-                    ImageView savedImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Saved.png")));
-                    savedImageView.setFitHeight(24);
-                    savedImageView.setFitWidth(24);
-                    ImageView downloadImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Download.png")));
-                    downloadImageView.setFitHeight(24);
-                    downloadImageView.setFitWidth(24);
-                    if (file.getFileName().equals("Study Guide")) { //TODO
+                    setText(getFileNameWithoutExtension(file.getFileName()));
+                    File f;
+                    if ((f = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getClassID() + "/" + file.getFileName())).exists() && f.length() == file.getFileLength()) {
                         setGraphic(savedImageView);
+                        setContextMenu(savedContextMenu);
                     } else {
                         setGraphic(downloadImageView);
+                        setContextMenu(downloadContextMenu);
                     }
                 }
             }
@@ -365,7 +421,6 @@ public class Display extends Application{
         timetablePane.setSpacing(15);
         timetablePane.setPadding(new Insets(25));
         VBox.setVgrow(timetableScrollPane, Priority.ALWAYS);
-
         populateTimetable();
 
         //Setup chat pane
@@ -417,32 +472,55 @@ public class Display extends Application{
         //Select and show scene
         stage.setScene(scene);
         stage.show();
-
     }
 
     private void populateTimetable() {
-        List<StudentClass> studentClasses = connectionHandler.getClasses();
-        for (StudentClass c : studentClasses) {
-            for (int i = c.getStartSlot(); i <= c.getEndSlot(); i++) {
-                Label label = new Label(c.getModuleName() + "\n\nTM (" + c.getRoomNumber() + ")");
-                label.setStyle("-fx-font-family: Verdana;" +
-                        " -fx-font-size: 11;");
-                label.setMaxSize(150, 150);
-                label.setMinSize(100, 100);
-                label.setWrapText(true);
-                label.setAlignment(Pos.TOP_CENTER);
-                label.setPadding(new Insets(5));
-                label.setOnMouseClicked(e -> {
-                    selectedClassComboBox.getSelectionModel().select(c);
-                    System.out.println(((Label) e.getSource()).getWidth());
-                    tabPane.getSelectionModel().select(0);
-                });
-                timetableGridPane.add(label, i, c.getDayOfWeek());
+        List<ClassAndResult> classAndResults = student.getClassAndResults();
+        for (ClassAndResult cr : classAndResults) {
+            String moduleName = cr.getStudentClass().getModuleName();
+            String lecturerInitials = cr.getStudentClass().getLecturerFirstName().charAt(0) + "" + cr.getStudentClass().getLecturerLastName().charAt(0);
+            for (ClassTime ct : cr.getStudentClass().getClassTimes()) {
+                for (int i = ct.getStartSlot(); i <= ct.getEndSlot(); i++) {
+                    Label label = new Label(moduleName + "\n\n" + lecturerInitials + " (" + ct.getRoomNumber() + ")");
+                    label.setStyle("-fx-font-family: Verdana;" +
+                            " -fx-font-size: 11;");
+                    label.setMaxSize(150, 150);
+                    label.setMinSize(100, 100);
+                    label.setWrapText(true);
+                    label.setAlignment(Pos.TOP_CENTER);
+                    label.setPadding(new Insets(5));
+                    label.setOnMouseClicked(e -> {
+                        selectedClassComboBox.getSelectionModel().select(cr);
+                        System.out.println(((Label) e.getSource()).getWidth());
+                        tabPane.getSelectionModel().select(0);
+                    });
+                    timetableGridPane.add(label, i, ct.getDayOfWeek());
+                }
             }
         }
     }
 
+    public String getFileNameWithoutExtension(String fileName) {
+        if (fileName.contains(".")) {
+            return fileName.substring(0, fileName.lastIndexOf("."));
+        }
+        return fileName;
+    }
+
+    public String getBuild() {
+        try {
+            Scanner scn = new Scanner(new File(APPLICATION_FOLDER.getAbsolutePath() + "/Version.txt"));
+            return "(Build " + scn.nextLine() + ")";
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return "(Build N/A)";
+    }
+
     public static void main(String[] args) {
+        if (!LOCAL_CACHE.exists()) {
+            LOCAL_CACHE.mkdirs();
+        }
         launch(args);
     }
 

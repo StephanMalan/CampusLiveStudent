@@ -1,21 +1,15 @@
 package net.ddns.swooosh.campuslivestudent.models;
 
-public class StudentFiles {
+public class StudentFile {
 
-    private int fileID;
     private int classID;
     private String fileName;
     private int fileLength;
 
-    public StudentFiles(int fileID, int classID, String fileName, int fileLength) {
-        this.fileID = fileID;
+    public StudentFile(int classID, String fileName, int fileLength) {
         this.classID = classID;
         this.fileName = fileName;
         this.fileLength = fileLength;
-    }
-
-    public int getFileID() {
-        return fileID;
     }
 
     public int getClassID() {

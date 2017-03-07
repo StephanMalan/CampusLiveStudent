@@ -21,4 +21,8 @@ public class ClassAndResult implements Serializable {
     public ObservableList<Result> getResults() {
         return results;
     }
+
+    public String toString() {
+        return studentClass.getModuleName();
+    }
 }

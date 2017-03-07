@@ -13,8 +13,9 @@ public class StudentClass implements Serializable {
     private String lecturerNumber;
     private String lecturerEmail;
     private ObservableList<ClassTime> classTimes;
+    private ObservableList<StudentFile> files;
 
-    public StudentClass(String moduleName, String moduleNumber, String lecturerFirstName, String lecturerLastName, String lecturerNumber, String lecturerEmail, ObservableList<ClassTime> classTimes) {
+    public StudentClass(String moduleName, String moduleNumber, String lecturerFirstName, String lecturerLastName, String lecturerNumber, String lecturerEmail, ObservableList<ClassTime> classTimes, ObservableList<StudentFile> files) {
         this.moduleName = moduleName;
         this.moduleNumber = moduleNumber;
         this.lecturerFirstName = lecturerFirstName;
@@ -22,6 +23,7 @@ public class StudentClass implements Serializable {
         this.lecturerNumber = lecturerNumber;
         this.lecturerEmail = lecturerEmail;
         this.classTimes = classTimes;
+        this.files = files;
     }
 
     public String getModuleName() {
@@ -50,5 +52,9 @@ public class StudentClass implements Serializable {
 
     public ObservableList<ClassTime> getClassTimes() {
         return classTimes;
+    }
+
+    public ObservableList<StudentFile> getFiles() {
+        return files;
     }
 }

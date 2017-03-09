@@ -9,8 +9,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
@@ -65,8 +65,6 @@ public class ResultDisplay extends Application {
         HBox buttonPane = new HBox();
         Text headingText = new Text("My Results");
         headingText.setStyle("-fx-font-size: 28pt;" +
-                " -fx-fill: #FECD34;" +
-                " -fx-stroke: black;" +
                 " -fx-font-family: \"Verdana\";" +
                 " -fx-font-weight: bold;" +
                 " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
@@ -82,7 +80,7 @@ public class ResultDisplay extends Application {
         closeButton.setStyle(" -fx-background-radius: 17;" +
                 " -fx-border-radius: 17;" +
                 " -fx-border-width: 2;" +
-                " -fx-background-color: white;" +
+                " -fx-background-color: #FECD34;" +
                 " -fx-border-color: black;" +
                 " -fx-font-family: Verdana;" +
                 " -fx-font-weight: bold;" +
@@ -95,7 +93,7 @@ public class ResultDisplay extends Application {
         viewAllButton.setStyle(" -fx-background-radius: 17;" +
                 " -fx-border-radius: 17;" +
                 " -fx-border-width: 2;" +
-                " -fx-background-color: white;" +
+                " -fx-background-color: #FECD34;" +
                 " -fx-border-color: black;" +
                 " -fx-font-family: Verdana;" +
                 " -fx-font-weight: bold;" +
@@ -109,25 +107,12 @@ public class ResultDisplay extends Application {
         buttonPane.setAlignment(Pos.CENTER);
         contentPane.getChildren().addAll(headingText, getAllResultsPane(resultsToDisplay), buttonPane);
         contentPane.setSpacing(15);
-        contentPane.setPadding(new Insets(10, 30, 30, 15));
+        contentPane.setPadding(new Insets(10, 15, 10, 15));
         contentPane.setAlignment(Pos.CENTER);
-
-        //Setup background pane
-        StackPane backgroundPane = new StackPane();
-        backgroundPane.setStyle("-fx-background-image: url(\"SquareBackground.png\");" +
-                " -fx-background-size: auto 100%;" +
-                " -fx-background-position: center;" +
-                " -fx-background-repeat: no-repeat;" +
-                " -fx-background-color: white;" +
-                " -fx-accent: white");
-        backgroundPane.setEffect(new GaussianBlur(10000));
-
-        //Setup main pane
-        StackPane mainPane = new StackPane(backgroundPane, contentPane);
-        mainPane.setAlignment(Pos.CENTER);
+        contentPane.setStyle("-fx-background-color: linear-gradient(rgba(66, 135, 167, .3), rgba(66, 135, 167, .4));");
 
         //Setup scene
-        Scene scene = new Scene(mainPane);
+        Scene scene = new Scene(contentPane);
         scene.getStylesheets().add(getClass().getClassLoader().getResource("CampusLiveStyle.css").toExternalForm());
 
         //Select and display scene
@@ -136,9 +121,24 @@ public class ResultDisplay extends Application {
     }
 
     public ScrollPane getAllResultsPane(ObservableList<ClassAndResult> resultsToDisplay) {
-        ObservableList<VBox> results = FXCollections.observableArrayList();
+        ObservableList<StackPane> results = FXCollections.observableArrayList();
         for (ClassAndResult car : resultsToDisplay) {
             VBox resultPane = new VBox();
+            ImageView staple1ImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Staple.png")));
+            staple1ImageView.setFitHeight(17);
+            staple1ImageView.setFitWidth(58);
+            staple1ImageView.setRotate(-30);
+            ImageView staple2ImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Staple.png")));
+            staple2ImageView.setFitHeight(17);
+            staple2ImageView.setFitWidth(58);
+            staple2ImageView.setRotate(30);
+            HBox staple1Pane = new HBox(staple1ImageView);
+            staple1Pane.setAlignment(Pos.CENTER_LEFT);
+            HBox staple2Pane = new HBox(staple2ImageView);
+            staple2Pane.setAlignment(Pos.CENTER_RIGHT);
+            HBox stapleMainPane = new HBox(staple1Pane, staple2Pane);
+            stapleMainPane.setPadding(new Insets(-25, -15, -40, -15));
+            HBox.setHgrow(staple1Pane, Priority.ALWAYS);
             resultPane.setStyle("-fx-border-color: deepskyblue;" +
                     " -fx-border-width: 3;" +
                     " -fx-border-radius: 10;");
@@ -146,8 +146,7 @@ public class ResultDisplay extends Application {
             classLabel.setStyle("-fx-font-family: Verdana;" +
                     " -fx-font-size: 18pt;" +
                     " -fx-text-fill: midnightblue;" +
-                    " -fx-font-weight: bold;" +
-                    " -fx-effect: null;");
+                    " -fx-font-weight: bold;");
             ObservableList<Label> labels = FXCollections.observableArrayList();
             Double weightedTotal = 0D;
             labels.add(classLabel);
@@ -162,36 +161,42 @@ public class ResultDisplay extends Application {
                 Label result = new Label(String.format("%-25s %3d %3d", r.getResultName(), Double.valueOf(resultPerc).intValue(), Double.valueOf(weightedResult).intValue()));
                 result.setStyle("-fx-font-family: monospace;" +
                         " -fx-font-size: 14pt;" +
-                        " -fx-effect: null;");
+                        " -fx-font-weight: bold;");
                 labels.add(result);
             }
             Label totalLabel = new Label(String.format("%-29s %3d", "Total", Double.valueOf(weightedTotal).intValue()));
             totalLabel.setStyle("-fx-font-family: monospace;" +
                     " -fx-font-size: 14pt;" +
-                    " -fx-effect: null;");
+                    " -fx-font-weight: bold;");
             labels.add(totalLabel);
+            resultPane.getChildren().add(stapleMainPane);
             resultPane.getChildren().addAll(labels);
-            resultPane.setPadding(new Insets(15));
+            resultPane.setPadding(new Insets(10));
             resultPane.setSpacing(5);
             resultPane.setAlignment(Pos.CENTER);
-            results.add(resultPane);
+            resultPane.setStyle("-fx-background-image: url(\"PaperTexture.png\");" +
+                    " -fx-background-size: 25%;");
+            StackPane shadowPane = new StackPane(resultPane);
+            shadowPane.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 5, 0.0, -5, 5);");
+            results.add(shadowPane);
         }
         VBox allResultsPane = new VBox();
         allResultsPane.getChildren().addAll(results);
-        allResultsPane.setSpacing(15);
+        allResultsPane.setSpacing(25);
         allResultsPane.setPadding(new Insets(15));
         allResultsPane.setAlignment(Pos.CENTER);
         allResultsPane.setStyle("-fx-background-color: transparent;");
         ScrollPane scrollPane = new ScrollPane(allResultsPane);
         scrollPane.setFitToHeight(true);
         scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-border-color: black;" +
-                " -fx-border-width: 2;" +
+        scrollPane.setStyle("-fx-border-color: #0087A7;" +
+                " -fx-border-width: 10;" +
                 " -fx-border-radius: 15;" +
-                " -fx-border-insets: -5;" +
+                " -fx-border-insets: -10;" +
                 " -fx-background-radius: 15;" +
                 " -fx-background-insets: -5;" +
-                " -fx-background-color: transparent;");
+                " -fx-background-image: url(\"Carpet.jpg\");" +
+                " -fx-background-size: 45%");
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         return scrollPane;
     }

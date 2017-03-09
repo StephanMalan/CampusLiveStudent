@@ -1,11 +1,9 @@
 .tab-pane .tab-header-area .tab-header-background {
     -fx-background-color: rgba(66, 135, 167, .6);
 }
-
 .tab-pane {
     -fx-tab-min-width:90px;
 }
-
 .tab{
     -fx-background-insets: 0 1 0 1,0,0;
     -fx-border-radius: 10 10 0 0, 10 10 0 0;
@@ -18,11 +16,9 @@
     -fx-font-size: 13;
     -fx-font-family: Verdana;
 }
-
 .tab-pane .tab:selected {
     -fx-background-color: white;
 }
-
 .tab .tab-label .tab:selected .tab-label{
     -fx-alignment: CENTER;
     -fx-text-fill: black;
@@ -33,7 +29,6 @@
 .tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
     -fx-border-radius: 9 9 0 0, 8 8 0 0;
 }
-
 .scroll-pane > .viewport {
     -fx-background-color: transparent;
 }

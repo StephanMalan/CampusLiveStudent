@@ -8,6 +8,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -16,11 +17,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.BlurType;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
@@ -33,8 +38,12 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
@@ -88,7 +97,7 @@ public class Display extends Application{
             Class<?> clazz = Tooltip.class.getDeclaredClasses()[0];
             Constructor<?> constructor = clazz.getDeclaredConstructor(Duration.class, Duration.class, Duration.class, boolean.class);
             constructor.setAccessible(true);
-            Object tooltipBehavior = constructor.newInstance(new Duration(50), new Duration(5000), new Duration(50), false);
+            Object tooltipBehavior = constructor.newInstance(new Duration(250), new Duration(5000), new Duration(250), false);
             Field fieldBehavior = Tooltip.class.getDeclaredField("BEHAVIOR");
             fieldBehavior.setAccessible(true);
             fieldBehavior.set(Tooltip.class, tooltipBehavior);
@@ -206,7 +215,7 @@ public class Display extends Application{
         forgotPasswordHyperlink = new Hyperlink("Forgot Password?");
         forgotPasswordHyperlink.setFont(new Font("Verdana", 14));
         waitIndicator = new ProgressIndicator(ProgressIndicator.INDETERMINATE_PROGRESS);
-        waitIndicator.setPrefSize(200, 200);
+        waitIndicator.setPrefSize(206, 206);
         loginPane = new VBox(loginLogoImageView, studentNumberTextField, passwordField, loginButton, forgotPasswordHyperlink);
         loginPane.setAlignment(Pos.CENTER);
         loginPane.setSpacing(20);
@@ -234,23 +243,39 @@ public class Display extends Application{
                 selectedClassFilesListView.setItems(selectedClassComboBox.getSelectionModel().getSelectedItem().getStudentClass().getFiles());
             }
         });
-        //TODO start off with class that student has now
-        selectedClassComboBox.getSelectionModel().select(0);
+        int dayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 2;
+        int currentTimeSlot = getCurrentTimeSlot();
+        Boolean timeSlotSet = false;
+        SetTimeSlot:
+        for (ClassAndResult car : student.getClassAndResults()) {
+            for (ClassTime ct : car.getStudentClass().getClassTimes()) {
+                if (ct.getDayOfWeek() == dayOfWeek && currentTimeSlot >= ct.getStartSlot() && currentTimeSlot <= ct.getEndSlot()) {
+                    selectedClassComboBox.getSelectionModel().select(car);
+                    timeSlotSet = true;
+                    break SetTimeSlot;
+                }
+            }
+        }
+        if (!timeSlotSet) {
+            selectedClassComboBox.getSelectionModel().select(0);
+        }
         selectedClassComboBox.setMinSize(50, 50);
         selectedClassComboBox.setMaxSize(50, 50);
         selectedClassResultsButton = new Button("My Results");
         selectedClassResultsButton.setOnAction(e -> {
-            ResultDisplay rd = new ResultDisplay(student.getClassAndResults(), selectedClassComboBox.getSelectionModel().getSelectedItem(), stage);
+            new ResultDisplay(student.getClassAndResults(), selectedClassComboBox.getSelectionModel().getSelectedItem(), stage);
         });
-        selectedClassResultsButton.setStyle(" -fx-background-radius: 17;" +
-                " -fx-border-radius: 17;" +
+        selectedClassResultsButton.setStyle(" -fx-background-radius: 15;" +
+                " -fx-border-radius: 15;" +
+                " -fx-background-insets: 0;" +
                 " -fx-border-width: 2;" +
-                " -fx-background-color: white;" +
+                " -fx-background-color: #FECD34;" +
                 " -fx-border-color: black;" +
                 " -fx-font-family: Verdana;" +
                 " -fx-font-weight: bold;" +
-                " -fx-font-size: 22;");
-        selectedClassResultsButton.setMinSize(250, 50);
+                " -fx-font-size: 16;");
+        selectedClassResultsButton.setMinSize(250, 36);
+        selectedClassResultsButton.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0, 0, 0, 0.6), 5, 0.0, 2, 2));
         selectedClassContactLecturerButton = new Button("Contact Lecturer");
         selectedClassContactLecturerButton.setOnAction(e -> {
             if (connectionHandler.isLecturerOnline(selectedClassComboBox.getSelectionModel().getSelectedItem().getStudentClass().getLecturerNumber())) {
@@ -264,15 +289,17 @@ public class Display extends Application{
                 //TODO open email to lecturer
             }
         });
-        selectedClassContactLecturerButton.setStyle(" -fx-background-radius: 25;" +
-                " -fx-border-radius: 25;" +
+        selectedClassContactLecturerButton.setStyle(" -fx-background-radius: 15;" +
+                " -fx-border-radius: 15;" +
+                " -fx-background-insets: 0;" +
                 " -fx-border-width: 2;" +
-                " -fx-background-color: white;" +
+                " -fx-background-color: #FECD34;" +
                 " -fx-border-color: black;" +
                 " -fx-font-family: Verdana;" +
                 " -fx-font-weight: bold;" +
-                " -fx-font-size: 22;");
-        selectedClassContactLecturerButton.setMinSize(250, 50);
+                " -fx-font-size: 16;");
+        selectedClassContactLecturerButton.setMinSize(250, 36);
+        selectedClassContactLecturerButton.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0, 0, 0, 0.6), 5, 0.0, 2, 2));
         selectedClassActionsPane = new HBox(selectedClassResultsButton, selectedClassContactLecturerButton);
         selectedClassActionsPane.setAlignment(Pos.CENTER);
         selectedClassActionsPane.setSpacing(50);
@@ -286,17 +313,17 @@ public class Display extends Application{
                 " -fx-border-insets: -10;" +
                 " -fx-border-width: 2;" +
                 " -fx-font-family: Verdana;" +
-                " -fx-font-size: 18");
+                " -fx-font-size: 20");
         selectedClassFilesListView.setCellFactory((ListView<StudentFile> param) -> new ListCell<StudentFile>() {
             @Override
             protected void updateItem(StudentFile file, boolean empty) {
                 super.updateItem(file, empty);
                 ImageView savedImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Saved.png")));
-                savedImageView.setFitHeight(24);
-                savedImageView.setFitWidth(24);
+                savedImageView.setFitHeight(32);
+                savedImageView.setFitWidth(32);
                 ImageView downloadImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Download.png")));
-                downloadImageView.setFitHeight(24);
-                downloadImageView.setFitWidth(24);
+                downloadImageView.setFitHeight(32);
+                downloadImageView.setFitWidth(32);
                 MenuItem openFileMenuItem = new MenuItem("Open File");
                 openFileMenuItem.setOnAction(event -> {
                     File f;
@@ -325,8 +352,12 @@ public class Display extends Application{
                 });
                 MenuItem redownloadFileMenuItem = new MenuItem("Redownload File");
                 ContextMenu savedContextMenu = new ContextMenu(openFileMenuItem, exportFileMenuItem, redownloadFileMenuItem);
+                savedContextMenu.setStyle("-fx-font-family: Verdana;" +
+                        " -fx-font-size: 18;");
                 MenuItem downloadFileMenuItem = new MenuItem("Download File");
                 ContextMenu downloadContextMenu = new ContextMenu(downloadFileMenuItem);
+                downloadContextMenu.setStyle("-fx-font-family: Verdana;" +
+                        " -fx-font-size: 18;");
                 setOnMouseClicked(event -> {
                     if (event.getClickCount() == 2) {
                         File f;
@@ -339,6 +370,7 @@ public class Display extends Application{
                         }
                     }
                 });
+                setGraphicTextGap(20);
                 if (empty || file == null || file.getFileName() == null) {
                     setText(null);
                     setContextMenu(null);
@@ -358,16 +390,21 @@ public class Display extends Application{
         });
         selectedClassFilesListView.setMinWidth(300);
         selectedClassFilesListView.setPrefWidth(1800);
+        selectedClassFilesListView.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue) {
+                selectedClassFilesListView.getSelectionModel().clearSelection();
+            }
+        });
         HBox selectedClassHeadingPane = new HBox(selectedClassComboBox, selectedClassText);
         selectedClassHeadingPane.setSpacing(5);
         selectedClassHeadingPane.setAlignment(Pos.CENTER);
         HBox selectedClassFilesPane = new HBox(selectedClassFilesListView);
         HBox.setHgrow(selectedClassFilesPane, Priority.ALWAYS);
         selectedClassFilesPane.setAlignment(Pos.CENTER);
-        selectedClassFilesPane.setPadding(new Insets(15, 150, 15, 150));
+        selectedClassFilesPane.setPadding(new Insets(15, 150, 30, 150));
         selectedClassPane = new VBox(selectedClassHeadingPane, selectedClassActionsPane, selectedClassFilesPane);
         VBox.setVgrow(selectedClassFilesPane, Priority.ALWAYS);
-        selectedClassPane.setSpacing(20);
+        selectedClassPane.setSpacing(10);
         selectedClassPane.setPadding(new Insets(15));
         selectedClassPane.setAlignment(Pos.CENTER);
         //</editor-fold>
@@ -375,7 +412,7 @@ public class Display extends Application{
         //<editor-fold desc="Timetable Pane">
         //Setup timetable pane
         timetableText = new Text("Timetable");
-        timetableText.setStyle("-fx-font-size: 28pt;" +
+        timetableText.setStyle("-fx-font-size: 32pt;" +
                 " -fx-text-fill: black;" +
                 " -fx-font-family: \"Verdana\";" +
                 " -fx-font-weight: bold;" +
@@ -463,7 +500,7 @@ public class Display extends Application{
             pushpinImageView.setFitWidth(64);
             HBox pushpinPane = new HBox(pushpinImageView);
             pushpinPane.setAlignment(Pos.CENTER);
-            pushpinPane.setPadding(new Insets(0, 0, -40, 0));
+            pushpinPane.setPadding(new Insets(-15, 0, -40, 0));
             Text headingLabel = new Text(nb.getHeading());
             headingLabel.setWrappingWidth(450);
             headingLabel.setStyle("-fx-font-family: Verdana;" +
@@ -493,16 +530,18 @@ public class Display extends Application{
             StackPane shadowPane = new StackPane(noticePane);
             shadowPane.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 5, 0.0, -5, 5);");
             shadowPane.setRotate((Math.random() * 3.0) - 1.5);
+            FlowPane.setMargin(shadowPane, new Insets(3));
             noticePanes.add(shadowPane);
         }
-        VBox bulletinBoardPane = new VBox();
+        FlowPane bulletinBoardPane = new FlowPane();
         bulletinBoardPane.getChildren().addAll(noticePanes);
         bulletinBoardPane.setAlignment(Pos.CENTER);
-        bulletinBoardPane.setSpacing(15);
+        bulletinBoardPane.setOrientation(Orientation.HORIZONTAL);
         bulletinBoardPane.setPadding(new Insets(20));
         bulletinBoardPane.setStyle("-fx-background-image: url(\"BulletinBoard.jpg\");" +
                 " -fx-background-size: 75%;");
         ScrollPane bulletinBoardScrollPane = new ScrollPane(new StackPane(bulletinBoardPane));
+        bulletinBoardPane.prefHeightProperty().bind(bulletinBoardScrollPane.heightProperty().subtract(42));
         bulletinBoardScrollPane.setFitToWidth(true);
         bulletinBoardScrollPane.setStyle("-fx-border-color: rgba(0, 135, 167, 0.6);" +
                 " -fx-border-width: 20;");
@@ -514,7 +553,7 @@ public class Display extends Application{
         //</editor-fold>
 
         //Setup chat pane
-
+        //TODO
 
         //Setup tab pane
         Tab classesTab = new Tab("My Classes", selectedClassPane);
@@ -537,8 +576,48 @@ public class Display extends Application{
         headingPane.setPrefHeight(150);
         headingPane.setMinHeight(100);
 
+        //<editor-fold desc="Bottom Pane">
+        //Setup bottom Pane
+        Circle websiteLink = new Circle(15, new ImagePattern(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png"))));
+        websiteLink.setOnMouseClicked(e -> {
+            try {
+                Desktop.getDesktop().browse(new URI("http://swooosh.ddns.net"));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+        Text websiteText = new Text("Website");
+        websiteText.setStyle("-fx-font-family: Verdana;" +
+                " -fx-font-size: 16;");
+        HBox websitePane = new HBox(websiteLink, websiteText);
+        websitePane.setAlignment(Pos.CENTER_LEFT);
+        websitePane.setSpacing(5);
+        Text settingsText = new Text("Settings");
+        settingsText.setStyle("-fx-font-family: Verdana;" +
+                " -fx-font-size: 16;");
+        Circle settingsLink = new Circle(15, new ImagePattern(new Image(getClass().getClassLoader().getResourceAsStream("Settings.png"))));
+        settingsLink.setOnMouseClicked(e -> {
+            //TODO open settings
+        });
+        HBox settingsPane = new HBox(settingsText, settingsLink);
+        settingsPane.setAlignment(Pos.CENTER_LEFT);
+        settingsPane.setSpacing(5);
+        settingsPane.setAlignment(Pos.CENTER_RIGHT);
+        Text developerText = new Text("Developed by Swooosh Apps Solutions");
+        developerText.setStyle("-fx-font-family: Verdana;" +
+                " -fx-font-size: 12;" +
+                " -fx-text-fill: dimgrey;");
+        HBox developerPane = new HBox(developerText);
+        developerPane.setAlignment(Pos.CENTER);
+        developerPane.setSpacing(5);
+        HBox bottomPane = new HBox(websitePane, developerPane, settingsPane);
+        bottomPane.setPadding(new Insets(5));
+        bottomPane.setStyle("-fx-background-color: linear-gradient(rgba(66, 135, 167, .5), rgba(66, 135, 167, .9));");
+        HBox.setHgrow(developerPane, Priority.ALWAYS);
+        //</editor-fold>
+
         //Setup student pane
-        studentPane = new VBox(headingPane, tabPane);
+        studentPane = new VBox(headingPane, tabPane, bottomPane);
         studentPane.setAlignment(Pos.CENTER);
         VBox.setVgrow(headingPane, Priority.ALWAYS);
         VBox.setVgrow(tabPane, Priority.ALWAYS);
@@ -608,6 +687,44 @@ public class Display extends Application{
         }
         return "(Build N/A)";
     }
+
+    public int getCurrentTimeSlot() {
+        try {
+            SimpleDateFormat parser = new SimpleDateFormat("HH:mm");
+            Date currentDate = parser.parse(parser.format(Calendar.getInstance().getTime()));
+            if (currentDate.compareTo(parser.parse("8:00")) >= 0 && currentDate.compareTo(parser.parse("9:00")) < 0) {
+                return 1;
+            } else if (currentDate.compareTo(parser.parse("9:00")) >= 0 && currentDate.compareTo(parser.parse("10:00")) < 0) {
+                return 2;
+            } else if (currentDate.compareTo(parser.parse("10:00")) >= 0 && currentDate.compareTo(parser.parse("11:00")) < 0) {
+                return 3;
+            } else if (currentDate.compareTo(parser.parse("11:00")) >= 0 && currentDate.compareTo(parser.parse("12:00")) < 0) {
+                return 4;
+            } else if (currentDate.compareTo(parser.parse("12:00")) >= 0 && currentDate.compareTo(parser.parse("13:00")) < 0) {
+                return 5;
+            } else if (currentDate.compareTo(parser.parse("13:00")) >= 0 && currentDate.compareTo(parser.parse("14:00")) < 0) {
+                return 6;
+            } else if (currentDate.compareTo(parser.parse("14:00")) >= 0 && currentDate.compareTo(parser.parse("15:00")) < 0) {
+                return 7;
+            } else if (currentDate.compareTo(parser.parse("15:00")) >= 0 && currentDate.compareTo(parser.parse("16:00")) < 0) {
+                return 8;
+            } else if (currentDate.compareTo(parser.parse("16:00")) >= 0 && currentDate.compareTo(parser.parse("17:00")) < 0) {
+                return 9;
+            } else if (currentDate.compareTo(parser.parse("17:00")) >= 0 && currentDate.compareTo(parser.parse("18:00")) < 0) {
+                return 10;
+            } else if (currentDate.compareTo(parser.parse("18:00")) >= 0 && currentDate.compareTo(parser.parse("18:45")) < 0) {
+                return 11;
+            } else if (currentDate.compareTo(parser.parse("18:45")) >= 0 && currentDate.compareTo(parser.parse("19:30")) < 0) {
+                return 12;
+            } else if (currentDate.compareTo(parser.parse("19:30")) >= 0 && currentDate.compareTo(parser.parse("20:15")) < 0) {
+                return 13;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return 0;
+    }
+
 
     public static void main(String[] args) {
         if (!LOCAL_CACHE.exists()) {

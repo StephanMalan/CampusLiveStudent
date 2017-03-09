@@ -26,10 +26,7 @@ import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import net.ddns.swooosh.campuslivestudent.models.ClassAndResult;
-import net.ddns.swooosh.campuslivestudent.models.ClassTime;
-import net.ddns.swooosh.campuslivestudent.models.Student;
-import net.ddns.swooosh.campuslivestudent.models.StudentFile;
+import net.ddns.swooosh.campuslivestudent.models.*;
 
 import java.awt.*;
 import java.io.File;
@@ -82,6 +79,8 @@ public class Display extends Application{
         stage.getIcons().addAll(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png")));
         stage.setMaxHeight(1080);
         stage.setMaxWidth(1920);
+        stage.setMinHeight(500);
+        stage.setMinWidth(800);
         stage.setMaximized(true);
 
         //Setup tooltip delays
@@ -98,6 +97,7 @@ public class Display extends Application{
             e.printStackTrace();
         }
 
+        //<editor-fold desc="Login Pane">
         //Setup Login pane
         //TODO warning for caps lock
         loginLogoImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png")));
@@ -212,7 +212,9 @@ public class Display extends Application{
         loginPane.setSpacing(20);
         loginPane.setPadding(new Insets(10));
         loginPane.setMaxSize(500, 500);
+        //</editor-fold>
 
+        //<editor-fold desc="Selected Class Pane">
         //Setup selected class pane
         selectedClassText = new Text();
         selectedClassText.setStyle("-fx-font-size: 20pt;" +
@@ -232,10 +234,14 @@ public class Display extends Application{
                 selectedClassFilesListView.setItems(selectedClassComboBox.getSelectionModel().getSelectedItem().getStudentClass().getFiles());
             }
         });
+        //TODO start off with class that student has now
         selectedClassComboBox.getSelectionModel().select(0);
         selectedClassComboBox.setMinSize(50, 50);
         selectedClassComboBox.setMaxSize(50, 50);
         selectedClassResultsButton = new Button("My Results");
+        selectedClassResultsButton.setOnAction(e -> {
+            ResultDisplay rd = new ResultDisplay(student.getClassAndResults(), selectedClassComboBox.getSelectionModel().getSelectedItem(), stage);
+        });
         selectedClassResultsButton.setStyle(" -fx-background-radius: 17;" +
                 " -fx-border-radius: 17;" +
                 " -fx-border-width: 2;" +
@@ -246,6 +252,18 @@ public class Display extends Application{
                 " -fx-font-size: 22;");
         selectedClassResultsButton.setMinSize(250, 50);
         selectedClassContactLecturerButton = new Button("Contact Lecturer");
+        selectedClassContactLecturerButton.setOnAction(e -> {
+            if (connectionHandler.isLecturerOnline(selectedClassComboBox.getSelectionModel().getSelectedItem().getStudentClass().getLecturerNumber())) {
+                int result = UserNotification.showLecturerContactMethod();
+                if (result == UserNotification.DIRECT_OPTION) {
+                    //TODO open email to lecturer
+                } else if (result == UserNotification.EMAIL_OPTION) {
+                    //TODO open direct message lecturer
+                }
+            } else {
+                //TODO open email to lecturer
+            }
+        });
         selectedClassContactLecturerButton.setStyle(" -fx-background-radius: 25;" +
                 " -fx-border-radius: 25;" +
                 " -fx-border-width: 2;" +
@@ -261,8 +279,12 @@ public class Display extends Application{
         selectedClassFilesListView = new ListView<>(selectedClassComboBox.getSelectionModel().getSelectedItem().getStudentClass().getFiles());
         selectedClassFilesListView.setStyle("-fx-background-color: rgba(66, 135, 167, .7);" +
                 " -fx-control-inner-background: transparent;" +
-                " -fx-background-radius: 15, 15, 15, 15;" +
+                " -fx-background-radius: 15;" +
                 " -fx-background-insets: -10;" +
+                " -fx-border-color: black;" +
+                " -fx-border-radius: 15;" +
+                " -fx-border-insets: -10;" +
+                " -fx-border-width: 2;" +
                 " -fx-font-family: Verdana;" +
                 " -fx-font-size: 18");
         selectedClassFilesListView.setCellFactory((ListView<StudentFile> param) -> new ListCell<StudentFile>() {
@@ -296,8 +318,6 @@ public class Display extends Application{
                             File target = new File(f.getAbsolutePath() + "/" + file.getFileName());
                             File toCopy = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getClassID() + "/" + file.getFileName());
                             Files.copy(toCopy.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                            System.out.println("YAY");
-                            //TODO message
                         }
                     } catch (Exception ex) {
                         ex.printStackTrace();
@@ -350,8 +370,10 @@ public class Display extends Application{
         selectedClassPane.setSpacing(20);
         selectedClassPane.setPadding(new Insets(15));
         selectedClassPane.setAlignment(Pos.CENTER);
+        //</editor-fold>
 
-        //Setup time table pane
+        //<editor-fold desc="Timetable Pane">
+        //Setup timetable pane
         timetableText = new Text("Timetable");
         timetableText.setStyle("-fx-font-size: 28pt;" +
                 " -fx-text-fill: black;" +
@@ -422,6 +444,74 @@ public class Display extends Application{
         timetablePane.setPadding(new Insets(25));
         VBox.setVgrow(timetableScrollPane, Priority.ALWAYS);
         populateTimetable();
+        //</editor-fold>
+
+        //<editor-fold desc="Notice Board Pane">
+        //Setup notice board pane
+        Text noticeBoardText = new Text("Notice Board");
+        noticeBoardText.setStyle("-fx-font-size: 32pt;" +
+                " -fx-text-fill: black;" +
+                " -fx-font-family: \"Verdana\";" +
+                " -fx-font-weight: bold;" +
+                " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
+                " -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );");
+        ObservableList<NoticeBoard> noticeBoards = connectionHandler.getNoticeBoards();
+        ObservableList<StackPane> noticePanes = FXCollections.observableArrayList();
+        for (NoticeBoard nb : noticeBoards) {
+            ImageView pushpinImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Pushpin.png")));
+            pushpinImageView.setFitHeight(64);
+            pushpinImageView.setFitWidth(64);
+            HBox pushpinPane = new HBox(pushpinImageView);
+            pushpinPane.setAlignment(Pos.CENTER);
+            pushpinPane.setPadding(new Insets(0, 0, -40, 0));
+            Text headingLabel = new Text(nb.getHeading());
+            headingLabel.setWrappingWidth(450);
+            headingLabel.setStyle("-fx-font-family: Verdana;" +
+                    " -fx-font-size: 28;" +
+                    " -fx-font-weight: bold;");
+            Text descriptionLabel = new Text(nb.getDesription());
+            descriptionLabel.setWrappingWidth(450);
+            descriptionLabel.setStyle("-fx-font-family: Verdana;" +
+                    " -fx-font-size: 22;");
+            VBox noticePane = new VBox(pushpinPane, headingLabel, descriptionLabel);
+            VBox.setVgrow(descriptionLabel, Priority.ALWAYS);
+            noticePane.setAlignment(Pos.TOP_LEFT);
+            noticePane.setPadding(new Insets(0, 15, 15, 15));
+            noticePane.setSpacing(15);
+            int randomInt = (int) (Math.random() * 4);
+            if (randomInt == 3) {
+                noticePane.setStyle("-fx-background-color: #8ae1e3");
+            } else if (randomInt == 2) {
+                noticePane.setStyle("-fx-background-color: #cf90e3");
+            } else if (randomInt == 1) {
+                noticePane.setStyle("-fx-background-color: #82e367");
+            } else {
+                noticePane.setStyle("-fx-background-color: #dce334");
+            }
+            noticePane.setMinWidth(500);
+            noticePane.setMaxWidth(500);
+            StackPane shadowPane = new StackPane(noticePane);
+            shadowPane.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 5, 0.0, -5, 5);");
+            shadowPane.setRotate((Math.random() * 3.0) - 1.5);
+            noticePanes.add(shadowPane);
+        }
+        VBox bulletinBoardPane = new VBox();
+        bulletinBoardPane.getChildren().addAll(noticePanes);
+        bulletinBoardPane.setAlignment(Pos.CENTER);
+        bulletinBoardPane.setSpacing(15);
+        bulletinBoardPane.setPadding(new Insets(20));
+        bulletinBoardPane.setStyle("-fx-background-image: url(\"BulletinBoard.jpg\");" +
+                " -fx-background-size: 75%;");
+        ScrollPane bulletinBoardScrollPane = new ScrollPane(new StackPane(bulletinBoardPane));
+        bulletinBoardScrollPane.setFitToWidth(true);
+        bulletinBoardScrollPane.setStyle("-fx-border-color: rgba(0, 135, 167, 0.6);" +
+                " -fx-border-width: 20;");
+        VBox noticeBoardPane = new VBox(noticeBoardText, bulletinBoardScrollPane);
+        noticeBoardPane.setPadding(new Insets(15, 100, 15, 100));
+        noticeBoardPane.setSpacing(20);
+        noticeBoardPane.setAlignment(Pos.CENTER);
+        VBox.setVgrow(bulletinBoardScrollPane, Priority.ALWAYS);
+        //</editor-fold>
 
         //Setup chat pane
 
@@ -431,7 +521,9 @@ public class Display extends Application{
         classesTab.setClosable(false);
         Tab timetableTab = new Tab("My Timetable", timetablePane);
         timetableTab.setClosable(false);
-        tabPane = new TabPane(classesTab, timetableTab);
+        Tab noticeBoardTab = new Tab("Notice Board", noticeBoardPane);
+        noticeBoardTab.setClosable(false);
+        tabPane = new TabPane(classesTab, timetableTab, noticeBoardTab);
 
         //Setup heading pane
         headingPane = new StackPane();

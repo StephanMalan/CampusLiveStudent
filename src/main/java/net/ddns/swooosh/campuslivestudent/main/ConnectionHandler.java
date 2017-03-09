@@ -9,7 +9,7 @@ import java.util.Arrays;
 public class ConnectionHandler {
 
     public ConnectionHandler() {
-
+        //TODO connection
     }
 
     public Boolean authorise(String studentNumber, String password) {
@@ -24,12 +24,29 @@ public class ConnectionHandler {
 
     public Student getStudent() {
         return new Student("DV2015-0073", "Durbanville", "BSc IT", "Stephan", "Malan", "stephanmalan.rob@gmail.com", FXCollections.observableList(Arrays.asList(
-                new ClassAndResult(new StudentClass("Object Oriented Systems Analysis and Design", "C_ITOO311", "Henk", "Lubbe", "Dv001", "henk@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("A0002", 2, 3, 4), new ClassTime("A0001", 4, 3, 4))), getFiles1()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5)))),
+                new ClassAndResult(new StudentClass("Object Oriented Systems Analysis and Design", "C_ITOO311", "Henk", "Lubbe", "Dv001", "henk@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("A0002", 2, 3, 4), new ClassTime("A0002", 4, 3, 4))), getFiles1()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5)))),
                 new ClassAndResult(new StudentClass("Social Practices and Security", "C_ITSC311", "Stephen", "L", "Dv002", "stephen@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("B201", 2, 5, 6), new ClassTime("A0001", 4, 5, 6))), getFiles2()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5)))),
-                new ClassAndResult(new StudentClass("Software Development Project 3", "C_ITSP300", "Nyarai", "Tunjera", "Dv003", "nyarai@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("A0002", 2, 7, 8))), getFiles1()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5)))),
-                new ClassAndResult(new StudentClass("Advanced Database Systems", "C_ITDA310", "Emanuel", "Madzume", "Dv004", "emanuel@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("A0001", 3, 1, 2), new ClassTime("A0002", 4, 7, 8))), getFiles2()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5)))),
+                new ClassAndResult(new StudentClass("Software Development Project 3", "C_ITSP300", "Nyarai", "Tunjera", "Dv003", "nyarai@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("A0001", 2, 7, 8))), getFiles1()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5)))),
+                new ClassAndResult(new StudentClass("Advanced Database Systems", "C_ITDA310", "Emanuel", "Madzume", "Dv004", "emanuel@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("A0002", 3, 1, 2), new ClassTime("A0002", 4, 7, 8))), getFiles2()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5)))),
                 new ClassAndResult(new StudentClass("Internet Programming and e-Commerce", "C_ITEC301", "Tem", "M", "Dv005", "tem@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("A0002", 3, 3, 4))), getFiles1()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5))))
         )));
+    }
+
+    public Boolean isLecturerOnline(String lecturerNumber) {
+        //TODO
+        return true;
+    }
+
+    public ObservableList<NoticeBoard> getNoticeBoards() {
+        //TODO
+        return FXCollections.observableArrayList(Arrays.asList(
+                new NoticeBoard("Todays cafe specials", "Today's special are:\n   - VitaWater R15\n   - Chips R11\n   - Chip rolls R15\n   - Pizza slice R21\n   - Coffee R10"),
+                new NoticeBoard("Semester test results", "Most of the semester results have been marked. Most results are being prepared to be rolled out\nPlease check the your results on the My Classes tab"),
+                new NoticeBoard("Todays cafe specials", "Today's special are:\n   - VitaWater R15\n   - Chips R11\n   - Chip rolls R15\n   - Pizza slice R21\n   - Coffee R10"),
+                new NoticeBoard("Semester test results", "Most of the semester results have been marked\nMost results are being prepared to be rolled out\nPlease check the your results on the My Classes tab"),
+                new NoticeBoard("Todays cafe specials", "Today's special are:\n   - VitaWater R15\n   - Chips R11\n   - Chip rolls R15\n   - Pizza slice R21\n   - Coffee R10"),
+                new NoticeBoard("Semester test results", "Most of the semester results have been marked\nMost results are being prepared to be rolled out\nPlease check the your results on the My Classes tab")
+        ));
     }
 
     //TODO remove

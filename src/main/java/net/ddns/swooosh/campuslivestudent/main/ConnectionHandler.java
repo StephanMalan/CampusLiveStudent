@@ -1,62 +1,283 @@
 package net.ddns.swooosh.campuslivestudent.main;
 
+import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import net.ddns.swooosh.campuslivestudent.models.*;
+import models.*;
 
-import java.util.Arrays;
+import javax.net.ssl.SSLSocketFactory;
+import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.nio.file.Files;
+import java.util.List;
 
 public class ConnectionHandler {
 
+    public static final int PORT = 25760;
+    public static final String LOCAL_ADDRESS = "127.0.0.1";
+    public static final String INTERNET_ADDRESS = "swooosh.ddns.net";
+    public StudentObservable student = new StudentObservable(null);
+    public volatile ObservableList<NoticeBoard> noticeBoard = FXCollections.observableArrayList();
+    public volatile ObservableList<String> outputQueue = FXCollections.observableArrayList();
+    public volatile ObservableList<Object> inputQueue = FXCollections.observableArrayList();
+    public String connectionType = "(On Campus)";
+    private Socket socket;
+    private ObjectOutputStream objectOutputStream;
+    private ObjectInputStream objectInputStream;
+
     public ConnectionHandler() {
         //TODO connection
+        connect();
     }
 
-    public Boolean authorise(String studentNumber, String password) {
-        Boolean result = studentNumber.equals("DV2015-0073") && password.equals("password");
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    //<editor-fold desc="Connection">
+    private void connect() {
+        //FIXME load times are too long
+        if (!connectLocal()) {
+            if (!connectInternet()) {
+                //TODO error message
+                System.exit(0);
+            } else {
+                connectionType = "(Off Campus)";
+            }
+        } else {
+            connectionType = "(On Campus)";
         }
-        return result;
+        new InputProcessor().start();
+        new OutputProcessor().start();
     }
 
-    public Student getStudent() {
-        return new Student("DV2015-0073", "Durbanville", "BSc IT", "Stephan", "Malan", "stephanmalan.rob@gmail.com", FXCollections.observableList(Arrays.asList(
-                new ClassAndResult(new StudentClass("Object Oriented Systems Analysis and Design", "C_ITOO311", "Henk", "Lubbe", "Dv001", "henk@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("A0002", 2, 3, 4), new ClassTime("A0002", 4, 3, 4))), getFiles1()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5)))),
-                new ClassAndResult(new StudentClass("Social Practices and Security", "C_ITSC311", "Stephen", "L", "Dv002", "stephen@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("B201", 2, 5, 6), new ClassTime("A0001", 4, 5, 6))), getFiles2()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5)))),
-                new ClassAndResult(new StudentClass("Software Development Project 3", "C_ITSP300", "Nyarai", "Tunjera", "Dv003", "nyarai@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("A0001", 2, 7, 8))), getFiles1()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5)))),
-                new ClassAndResult(new StudentClass("Advanced Database Systems", "C_ITDA310", "Emanuel", "Madzume", "Dv004", "emanuel@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("A0002", 3, 1, 2), new ClassTime("A0002", 4, 7, 8))), getFiles2()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5)))),
-                new ClassAndResult(new StudentClass("Internet Programming and e-Commerce", "C_ITEC301", "Tem", "M", "Dv005", "tem@cti.ac.za", FXCollections.observableArrayList(Arrays.asList(new ClassTime("A0002", 3, 3, 4))), getFiles1()), FXCollections.observableArrayList(Arrays.asList(new Result("Continuous assessment", 80D, 100D, 0.1), new Result("Semester Test", 80D, 100D, 0.2), new Result("Assignment", 80D, 100D, 0.2), new Result("Examination", 80D, 100D, 0.5))))
-        )));
+    private Boolean connectLocal() {
+        System.out.println("Trying to connect to local server...");
+        try {
+            System.setProperty("javax.net.ssl.trustStore", "src/main/resources/campuslive.store");
+            socket = SSLSocketFactory.getDefault().createSocket(LOCAL_ADDRESS, PORT);
+            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
+            System.out.println("Socket is connected");
+            return true;
+        } catch (Exception ex) {
+            System.out.println("Could not connect to local server");
+        }
+        return false;
+    }
+
+    private Boolean connectInternet() {
+        System.out.println("Trying to connect to internet server...");
+        try {
+            System.setProperty("javax.net.ssl.trustStore", "src/main/resources/campuslive.store");
+            socket = SSLSocketFactory.getDefault().createSocket(INTERNET_ADDRESS, PORT);
+            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
+            System.out.println("Socket is connected");
+            return true;
+        } catch (Exception ex) {
+            System.out.println("Could not connect to internet server");
+        }
+        return false;
+    }
+    //</editor-fold>
+
+    public String getConnectionType() {
+        return connectionType;
+    }
+
+    //<editor-fold desc="Commands">
+    public Boolean authorise(String studentNumber, String password) {
+        outputQueue.add("sa:" + studentNumber + ":" + password);
+        return getStringReply("sa:");
     }
 
     public Boolean isLecturerOnline(String lecturerNumber) {
-        //TODO
-        return true;
+        outputQueue.add("lo:" + lecturerNumber);
+        return getStringReply("lo:");
     }
 
-    public ObservableList<NoticeBoard> getNoticeBoards() {
-        //TODO
-        return FXCollections.observableArrayList(Arrays.asList(
-                new NoticeBoard("Todays cafe specials", "Today's special are:\n   - VitaWater R15\n   - Chips R11\n   - Chip rolls R15\n   - Pizza slice R21\n   - Coffee R10"),
-                new NoticeBoard("Semester test results", "Most of the semester results have been marked. Most results are being prepared to be rolled out\nPlease check the your results on the My Classes tab"),
-                new NoticeBoard("Todays cafe specials", "Today's special are:\n   - VitaWater R15\n   - Chips R11\n   - Chip rolls R15\n   - Pizza slice R21\n   - Coffee R10"),
-                new NoticeBoard("Semester test results", "Most of the semester results have been marked\nMost results are being prepared to be rolled out\nPlease check the your results on the My Classes tab"),
-                new NoticeBoard("Todays cafe specials", "Today's special are:\n   - VitaWater R15\n   - Chips R11\n   - Chip rolls R15\n   - Pizza slice R21\n   - Coffee R10"),
-                new NoticeBoard("Semester test results", "Most of the semester results have been marked\nMost results are being prepared to be rolled out\nPlease check the your results on the My Classes tab")
-        ));
+    public Boolean changePassword(String prevPassword, String newPassword) {
+        outputQueue.add("cp:" + prevPassword + ":" + newPassword);
+        return getStringReply("cp:");
     }
 
-    //TODO remove
-    private ObservableList<StudentFile> getFiles1() {
-        return FXCollections.observableArrayList(Arrays.asList(new StudentFile(1, "Study Guide.pdf", 1024), new StudentFile(1, "Module Outline.pdf", 231722), new StudentFile(1, "Project Specifications.pdf", 1024)));
+    public Boolean forgotPassword(String email) {
+        outputQueue.add("fp:" + email);
+        return getStringReply("fp:");
     }
 
-    //TODO remove
-    private ObservableList<StudentFile> getFiles2() {
-        return FXCollections.observableArrayList(Arrays.asList(new StudentFile(2, "Study Guide.pdf", 1024), new StudentFile(2, "Module Outline.pdf", 1024), new StudentFile(2, "Project Specifications.pdf", 1024), new StudentFile(2, "Assessment 1.pdf", 1024)));
+    public void sendMessage(String message, String lecturerNumber) {
+        outputQueue.add("sm:" + message + ":" + lecturerNumber);
+    }
+
+    public void deleteFile(int classID, String fileName) {
+        new File(Display.LOCAL_CACHE + "/" + classID + "/" + fileName).delete();
+        updateSavedFiles();
+    }
+
+    public void sendData(String data) {
+        try {
+            objectOutputStream.writeUTF(data);
+            objectOutputStream.flush();
+            System.out.println("Sent data: " + data);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public Object getReply() {
+        try {
+            Object input;
+            while ((input = objectInputStream.readObject()) == null) ;
+            return input;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(0);
+        }
+        return null;
+    }
+
+    public void updateSavedFiles() {
+        Boolean updated = false;
+        for (ClassAndResult car : student.getStudent().getClassAndResults()) {
+            for (StudentFile sf : car.getStudentClass().getFiles()) {
+                File f;
+                if ((f = new File(Display.LOCAL_CACHE + "/" + sf.getClassID() + "/" + sf.getFileName())).exists() && f.length() == sf.getFileLength()) {
+                    if (sf.getValue() != 1) {
+                        sf.setValue(1);
+                        updated = true;
+                    }
+                } else if (sf.getValue() == 1) {
+                    sf.setValue(0);
+                    updated = true;
+
+                }
+            }
+        }
+        if (updated) {
+            Platform.runLater(() -> student.update());
+            System.out.println("Files Updated");
+        }
+    }
+
+    public Boolean getStringReply(String startsWith) {
+        Boolean result;
+        Object objectToRemove;
+        ReturnResult:
+        while (true) {
+            for (int i = 0; i < inputQueue.size(); i++) {
+                Object object = inputQueue.get(i);
+                if (object instanceof String) {
+                    String in = (String) object;
+                    if (in.startsWith(startsWith)) {
+                        objectToRemove = object;
+                        result = in.charAt(startsWith.length()) == 'y';
+                        break ReturnResult;
+                    }
+                }
+            }
+        }
+        inputQueue.remove(objectToRemove);
+        return result;
+    }
+
+    public Boolean studentInitialized() {
+        return student.getStudent() != null;
+    }
+
+    private class InputProcessor extends Thread {
+        public void run() {
+            while (true) {
+                Object input;
+                if ((input = getReply()) != null) {
+                    if (input instanceof Student) {
+                        student.setStudent((Student) input);
+                        updateSavedFiles();
+                        System.out.println("Updated Student");
+                    } else if (input instanceof List<?>) {
+                        noticeBoard.clear();
+                        noticeBoard.addAll((List<NoticeBoard>) input);
+                        System.out.println("Updated Notice Board");
+                    } else {
+                        inputQueue.add(input);
+                    }
+                }
+            }
+        }
+    }
+
+    private class OutputProcessor extends Thread {
+        public void run() {
+            while (true) {
+                if (!outputQueue.isEmpty()) {
+                    sendData(outputQueue.get(0));
+                    outputQueue.remove(0);
+                }
+            }
+        }
+    }
+
+    public class FileDownloader extends Thread {
+
+        public volatile IntegerProperty size;
+        public volatile DoubleProperty progress;
+        StudentFile file;
+        byte[] bytes;
+
+        public FileDownloader(StudentFile file) {
+            this.file = file;
+            bytes = new byte[file.getFileLength()];
+            size = new SimpleIntegerProperty(0);
+            progress = new SimpleDoubleProperty(0);
+        }
+
+        @Override
+        public void run() {
+            outputQueue.add("gf:" + file.getClassID() + ":" + file.getFileName());
+            Done:
+            while (true) {
+                FilePart filePartToRemove = null;
+                BreakSearch:
+                for (int i = inputQueue.size() - 1; i > -1; i--) {
+                    try {
+                        Object object = inputQueue.get(i);
+                        if (object instanceof FilePart) {
+                            FilePart filePart = (FilePart) object;
+                            if (filePart.getClassID() == file.getClassID() && filePart.getFileName().equals(file.getFileName())) {
+                                filePartToRemove = filePart;
+                                break BreakSearch;
+                            }
+                        }
+                    } catch (IndexOutOfBoundsException ex) {
+                    }
+                }
+                if (filePartToRemove != null) {
+                    for (int i = 0; i < filePartToRemove.getFileBytes().length; i++) {
+                        bytes[size.get() + i] = filePartToRemove.getFileBytes()[i];
+                    }
+                    size.set(size.get() + filePartToRemove.getFileBytes().length);
+                    progress.set(1D * size.get() / bytes.length);
+                    Platform.runLater(() -> student.update());
+                    inputQueue.remove(filePartToRemove);
+                }
+                if (size.get() == file.getFileLength()) {
+                    System.out.println("File successfully downloaded!");
+                    File f = new File(Display.LOCAL_CACHE + "/" + file.getClassID() + "/" + file.getFileName());
+                    f.getParentFile().mkdirs();
+                    try {
+                        Files.write(f.toPath(), bytes);
+                        updateSavedFiles();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    break Done;
+                }
+            }
+        }
     }
 
 }

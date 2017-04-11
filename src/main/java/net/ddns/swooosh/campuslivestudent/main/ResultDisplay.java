@@ -9,17 +9,21 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.effect.BlurType;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import net.ddns.swooosh.campuslivestudent.models.ClassAndResult;
-import net.ddns.swooosh.campuslivestudent.models.Result;
+import javafx.stage.StageStyle;
+import models.ClassAndResult;
+import models.Result;
 
 public class ResultDisplay extends Application {
 
@@ -52,11 +56,8 @@ public class ResultDisplay extends Application {
     public void start(Stage stage) throws Exception {
         stage.setTitle("My Results");
         stage.getIcons().addAll(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png")));
-        stage.setMinWidth(800);
-        stage.setMinHeight(600);
-        stage.setMaxWidth(800);
-        stage.setMaxHeight(600);
         stage.setResizable(true);
+        stage.initStyle(StageStyle.TRANSPARENT);
         stage.initModality(Modality.WINDOW_MODAL);
         stage.initOwner(parent);
 
@@ -69,6 +70,17 @@ public class ResultDisplay extends Application {
                 " -fx-font-weight: bold;" +
                 " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
                 " -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );");
+        HBox headingPane = new HBox(headingText);
+        headingPane.setStyle("-fx-background-color: #FECD34;" +
+                " -fx-border-color: black;" +
+                " -fx-border-width: 3;" +
+                " -fx-border-radius: 30;" +
+                " -fx-background-radius: 30;");
+        headingPane.setAlignment(Pos.CENTER);
+        headingPane.setPadding(new Insets(5, 150, 5, 150));
+        HBox headingMainPane = new HBox(headingPane);
+        headingMainPane.setAlignment(Pos.CENTER);
+        HBox.setHgrow(headingPane, Priority.NEVER);
         ObservableList<ClassAndResult> resultsToDisplay = FXCollections.observableArrayList();
         if (startClass != null) {
             resultsToDisplay.add(startClass);
@@ -84,11 +96,13 @@ public class ResultDisplay extends Application {
                 " -fx-border-color: black;" +
                 " -fx-font-family: Verdana;" +
                 " -fx-font-weight: bold;" +
-                " -fx-font-size: 20;");
+                " -fx-font-size: 20;" +
+                " -fx-background-insets: 0;");
+        closeButton.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0, 0, 0, 0.6), 5, 0.0, 2, 2));
         Button viewAllButton = new Button("View All");
         viewAllButton.setOnAction(e -> {
             contentPane.getChildren().clear();
-            contentPane.getChildren().addAll(headingText, getAllResultsPane(classAndResults), buttonPane);
+            contentPane.getChildren().addAll(headingMainPane, getAllResultsPane(classAndResults), buttonPane);
         });
         viewAllButton.setStyle(" -fx-background-radius: 17;" +
                 " -fx-border-radius: 17;" +
@@ -97,7 +111,9 @@ public class ResultDisplay extends Application {
                 " -fx-border-color: black;" +
                 " -fx-font-family: Verdana;" +
                 " -fx-font-weight: bold;" +
-                " -fx-font-size: 20;");
+                " -fx-font-size: 20;" +
+                " -fx-background-insets: 0;");
+        viewAllButton.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0, 0, 0, 0.6), 5, 0.0, 2, 2));
         if (startClass == null) {
             buttonPane.getChildren().addAll(closeButton);
         } else {
@@ -105,14 +121,14 @@ public class ResultDisplay extends Application {
         }
         buttonPane.setSpacing(15);
         buttonPane.setAlignment(Pos.CENTER);
-        contentPane.getChildren().addAll(headingText, getAllResultsPane(resultsToDisplay), buttonPane);
+        contentPane.getChildren().addAll(headingMainPane, getAllResultsPane(resultsToDisplay), buttonPane);
         contentPane.setSpacing(15);
         contentPane.setPadding(new Insets(10, 15, 10, 15));
         contentPane.setAlignment(Pos.CENTER);
-        contentPane.setStyle("-fx-background-color: linear-gradient(rgba(66, 135, 167, .3), rgba(66, 135, 167, .4));");
+        contentPane.setStyle("-fx-background-color: transparent;");
 
         //Setup scene
-        Scene scene = new Scene(contentPane);
+        Scene scene = new Scene(contentPane, Color.TRANSPARENT);
         scene.getStylesheets().add(getClass().getClassLoader().getResource("CampusLiveStyle.css").toExternalForm());
 
         //Select and display scene
@@ -139,9 +155,6 @@ public class ResultDisplay extends Application {
             HBox stapleMainPane = new HBox(staple1Pane, staple2Pane);
             stapleMainPane.setPadding(new Insets(-25, -15, -40, -15));
             HBox.setHgrow(staple1Pane, Priority.ALWAYS);
-            resultPane.setStyle("-fx-border-color: deepskyblue;" +
-                    " -fx-border-width: 3;" +
-                    " -fx-border-radius: 10;");
             Label classLabel = new Label(car.getStudentClass().getModuleName());
             classLabel.setStyle("-fx-font-family: Verdana;" +
                     " -fx-font-size: 18pt;" +
@@ -157,8 +170,12 @@ public class ResultDisplay extends Application {
                 }
                 Double weightedResult = resultPerc * r.getResultsWeight();
                 weightedTotal += weightedResult;
-                //TODO check if total is N/A
-                Label result = new Label(String.format("%-25s %3d %3d", r.getResultName(), Double.valueOf(resultPerc).intValue(), Double.valueOf(weightedResult).intValue()));
+                Label result;
+                if (r.getResult() == -1D) {
+                    result = new Label(String.format("%-25s N/A N/A", r.getResultName(), Double.valueOf(resultPerc).intValue(), Double.valueOf(weightedResult).intValue()));
+                } else {
+                    result = new Label(String.format("%-25s %3d %3d", r.getResultName(), Double.valueOf(resultPerc).intValue(), Double.valueOf(weightedResult).intValue()));
+                }
                 result.setStyle("-fx-font-family: monospace;" +
                         " -fx-font-size: 14pt;" +
                         " -fx-font-weight: bold;");
@@ -183,13 +200,15 @@ public class ResultDisplay extends Application {
         VBox allResultsPane = new VBox();
         allResultsPane.getChildren().addAll(results);
         allResultsPane.setSpacing(25);
-        allResultsPane.setPadding(new Insets(15));
+        allResultsPane.setPadding(new Insets(25, 220, 25, 220));
         allResultsPane.setAlignment(Pos.CENTER);
         allResultsPane.setStyle("-fx-background-color: transparent;");
         ScrollPane scrollPane = new ScrollPane(allResultsPane);
         scrollPane.setFitToHeight(true);
         scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-border-color: #0087A7;" +
+        scrollPane.setMaxSize(1200, 600);
+        scrollPane.setMinSize(1200, 600);
+        scrollPane.setStyle("-fx-border-color: black;" +
                 " -fx-border-width: 10;" +
                 " -fx-border-radius: 15;" +
                 " -fx-border-insets: -10;" +

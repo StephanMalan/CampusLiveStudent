@@ -1,7 +1,9 @@
 package net.ddns.swooosh.campuslivestudent.main;
 
+import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -10,6 +12,7 @@ import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.*;
@@ -26,12 +29,11 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import net.ddns.swooosh.campuslivestudent.models.*;
+import models.*;
 
 import java.awt.*;
 import java.io.File;
@@ -47,14 +49,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
-public class Display extends Application{
+public class Display extends Application {
 
-    private static final File APPLICATION_FOLDER = new File(System.getProperty("user.home") + "/AppData/Local/Swooosh/CampusLiveStudent");
-    private static final File LOCAL_CACHE = new File(APPLICATION_FOLDER.getAbsolutePath() + "/Local Cache");
+    public static final File APPLICATION_FOLDER = new File(System.getProperty("user.home") + "/AppData/Local/Swooosh/CampusLiveStudent");
+    public static final File LOCAL_CACHE = new File(APPLICATION_FOLDER.getAbsolutePath() + "/Local Cache");
     private ConnectionHandler connectionHandler = new ConnectionHandler();
-    private Student student = connectionHandler.getStudent();
-    private volatile BooleanProperty running = new SimpleBooleanProperty(false);
-    private volatile BooleanProperty result = new SimpleBooleanProperty(false);
+    private ObservableList<ClassAndResult> classAndResults = FXCollections.observableArrayList();
     private Stage stage;
     private ImageView loginLogoImageView;
     private TextField studentNumberTextField;
@@ -68,11 +68,12 @@ public class Display extends Application{
     private ComboBox<ClassAndResult> selectedClassComboBox;
     private Button selectedClassContactLecturerButton;
     private HBox selectedClassActionsPane;
-    private ListView<StudentFile> selectedClassFilesListView;
+    private ListView<StudentFileObservable> selectedClassFilesListView;
     private VBox selectedClassPane;
     private Text timetableText;
     private GridPane timetableGridPane;
     private VBox timetablePane;
+    private FlowPane bulletinBoardPane;
     private TabPane tabPane;
     private StackPane headingPane;
     private VBox studentPane;
@@ -84,7 +85,7 @@ public class Display extends Application{
 
         //Setup stage
         stage = primaryStage;
-        stage.setTitle("Campus Live Student (On-Campus) (" + student.getCampus() + ") " + getBuild());
+        stage.setTitle("Campus Live Student " + connectionHandler.getConnectionType() + " " + getBuild());
         stage.getIcons().addAll(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png")));
         stage.setMaxHeight(1080);
         stage.setMaxWidth(1920);
@@ -101,8 +102,7 @@ public class Display extends Application{
             Field fieldBehavior = Tooltip.class.getDeclaredField("BEHAVIOR");
             fieldBehavior.setAccessible(true);
             fieldBehavior.set(Tooltip.class, tooltipBehavior);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -114,106 +114,78 @@ public class Display extends Application{
         loginLogoImageView.setFitWidth(200);
         studentNumberTextField = new TextField();
         studentNumberTextField.setPromptText("Student Number");
-        studentNumberTextField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -45%);" +
-                " -fx-font-size: 12pt;" +
-                " -fx-text-fill: black;" +
-                " -fx-font-family: \"Verdana\";" +
-                " -fx-font-weight: bold;" +
-                " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
-                " -fx-effect: dropshadow( three-pass-box , black , 5, 0.0 , 0 , 1 );" +
-                " -fx-background-radius: 20, 20, 20, 20;" +
-                " -fx-background-image: url(\"User.png\");" +
-                " -fx-background-repeat: no-repeat;" +
-                " -fx-background-size: auto 50%;" +
-                " -fx-background-position: 5, 5, 5, 5;");
+        studentNumberTextField.getStyleClass().add("loginFields");
         studentNumberTextField.setMaxWidth(250);
         studentNumberTextField.setMinHeight(40);
         studentNumberTextField.setPadding(new Insets(5, 5, 5, 30));
         passwordField = new PasswordField();
         passwordField.setPromptText("Password");
-        passwordField.setStyle("-fx-prompt-text-fill: derive(-fx-control-inner-background, -45%);" +
-                " -fx-font-size: 12pt;" +
-                " -fx-text-fill: black;" +
-                " -fx-font-family: \"Verdana\";" +
-                " -fx-font-weight: bold;" +
-                " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
-                " -fx-effect: dropshadow( three-pass-box , black , 5, 0.0 , 0 , 1 );" +
-                " -fx-background-radius: 20, 20, 20, 20;" +
-                " -fx-background-image: url(\"Password.png\");" +
-                " -fx-background-repeat: no-repeat;" +
-                " -fx-background-size: auto 50%;" +
-                " -fx-background-position: 5, 5, 5, 15");
+        passwordField.getStyleClass().add("loginFields");
+        passwordField.getStyleClass().add("loginPassword");
         passwordField.setMaxWidth(250);
         passwordField.setMinHeight(40);
         passwordField.setPadding(new Insets(5, 5, 5, 30));
         loginButton = new Button("Login");
-        loginButton.setStyle("-fx-font-size: 16pt;" +
-                " -fx-text-fill: white;" +
-                " -fx-font-family: \"Verdana\";" +
-                " -fx-font-weight: bold;" +
-                " -fx-background-color: #4287a7;" +
-                " -fx-effect: dropshadow( three-pass-box , black , 5, 0.0 , 0 , 1 );" +
-                " -fx-background-radius: 20, 20, 20, 20;");
+        loginButton.getStyleClass().add("loginButton");
         loginButton.setMaxWidth(250);
         loginButton.setMinHeight(40);
         loginButton.setPadding(new Insets(2, 2, 2, 2));
         loginButton.setOnAction((ActionEvent e) -> {
             studentNumberTextField.setBorder(null);
             passwordField.setBorder(null);
-           if (studentNumberTextField.getText().length() < 11) { //TODO min length login
-               studentNumberTextField.setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(20), BorderWidths.DEFAULT)));
-               Tooltip studentNumberShortTooltip = new Tooltip("Student number too short");
-               studentNumberShortTooltip.setStyle(" -fx-background-color: red;" +
-                       " -fx-background-radius: 10, 10, 10, 10;" +
-                       " -fx-text-fill: white;" +
-                       " -fx-font-family: \"Verdana\";");
-               studentNumberTextField.setTooltip(studentNumberShortTooltip);
-           } else if (passwordField.getText().length() < 5) { //TODO min length password
-               passwordField.setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(20), BorderWidths.DEFAULT)));
-               Tooltip passwordShortTooltip = new Tooltip("Password too short");
-               passwordShortTooltip.setStyle(" -fx-background-color: red;" +
-                       " -fx-background-radius: 10, 10, 10, 10;" +
-                       " -fx-text-fill: white;" +
-                       " -fx-font-family: \"Verdana\";");
-               passwordField.setTooltip(passwordShortTooltip);
-           } else {
-               loginPane.getChildren().clear();
-               loginPane.getChildren().addAll(loginLogoImageView, waitIndicator);
-               running.setValue(true);
-               Thread loginThread = new Thread(() -> {
-                    result.setValue(connectionHandler.authorise(studentNumberTextField.getText(), passwordField.getText()));
-                    running.set(false);
-               });
-               loginThread.start();
-               running.addListener(al -> {
-                   if (!running.getValue()) {
-                       if (result.getValue()) {
-                           Platform.runLater(() -> {
-                               contentPane.getChildren().clear();
-                               contentPane.getChildren().addAll(backgroundPane, studentPane);
-                           });
-                       } else {
-                           Platform.runLater(() -> {
-                               passwordField.setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(20), BorderWidths.DEFAULT)));
-                               Tooltip incorrectLoginTooltip = new Tooltip("Incorrect login details");
-                               incorrectLoginTooltip.setStyle(" -fx-background-color: red;" +
-                                       " -fx-background-radius: 10, 10, 10, 10;" +
-                                       " -fx-text-fill: white;" +
-                                       " -fx-font-family: \"Verdana\";");
-                               passwordField.setTooltip(incorrectLoginTooltip);
-                               loginPane.getChildren().clear();
-                               loginPane.getChildren().addAll(loginLogoImageView, studentNumberTextField, passwordField, loginButton, forgotPasswordHyperlink);
-                               passwordField.clear();
-                               passwordField.requestFocus();
-                           });
-                       }
-                   }
-               });
-           }
+            if (studentNumberTextField.getText().length() < 11) {
+                studentNumberTextField.setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(20), BorderWidths.DEFAULT)));
+                Tooltip studentNumberShortTooltip = new Tooltip("Student number too short");
+                studentNumberShortTooltip.getStyleClass().add("loginTooltip");
+                studentNumberTextField.setTooltip(studentNumberShortTooltip);
+            } else if (passwordField.getText().length() < 5) {
+                passwordField.setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(20), BorderWidths.DEFAULT)));
+                Tooltip passwordShortTooltip = new Tooltip("Password too short");
+                passwordShortTooltip.getStyleClass().add("loginTooltip");
+                passwordField.setTooltip(passwordShortTooltip);
+            } else {
+                loginPane.getChildren().clear();
+                loginPane.getChildren().addAll(loginLogoImageView, waitIndicator);
+                BooleanProperty waitingToAuthorise = new SimpleBooleanProperty(false);
+                BooleanProperty authoriseResult = new SimpleBooleanProperty(false);
+                waitingToAuthorise.setValue(true);
+                Thread loginThread = new Thread(() -> {
+                    if (connectionHandler.authorise(studentNumberTextField.getText(), passwordField.getText())) {
+                        System.out.println(1);
+                        while (connectionHandler.studentInitialized()) ;
+                        System.out.println(2);
+                        authoriseResult.setValue(true);
+                    } else {
+                        authoriseResult.setValue(false);
+                    }
+                    waitingToAuthorise.set(false);
+                });
+                loginThread.start();
+                waitingToAuthorise.addListener(al -> {
+                    if (!waitingToAuthorise.getValue()) {
+                        if (authoriseResult.getValue()) {
+                            Platform.runLater(() -> {
+                                contentPane.getChildren().clear();
+                                contentPane.getChildren().addAll(backgroundPane, studentPane);
+                            });
+                        } else {
+                            Platform.runLater(() -> {
+                                passwordField.setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(20), BorderWidths.DEFAULT)));
+                                Tooltip incorrectLoginTooltip = new Tooltip("Incorrect login details");
+                                incorrectLoginTooltip.getStyleClass().add("loginTooltip");
+                                passwordField.setTooltip(incorrectLoginTooltip);
+                                loginPane.getChildren().clear();
+                                loginPane.getChildren().addAll(loginLogoImageView, studentNumberTextField, passwordField, loginButton, forgotPasswordHyperlink);
+                                passwordField.clear();
+                                passwordField.requestFocus();
+                            });
+                        }
+                    }
+                });
+            }
         });
         loginButton.setDefaultButton(true);
         forgotPasswordHyperlink = new Hyperlink("Forgot Password?");
-        forgotPasswordHyperlink.setFont(new Font("Verdana", 14));
         waitIndicator = new ProgressIndicator(ProgressIndicator.INDETERMINATE_PROGRESS);
         waitIndicator.setPrefSize(206, 206);
         loginPane = new VBox(loginLogoImageView, studentNumberTextField, passwordField, loginButton, forgotPasswordHyperlink);
@@ -226,55 +198,31 @@ public class Display extends Application{
         //<editor-fold desc="Selected Class Pane">
         //Setup selected class pane
         selectedClassText = new Text();
-        selectedClassText.setStyle("-fx-font-size: 20pt;" +
-                " -fx-text-fill: black;" +
-                " -fx-font-family: \"Verdana\";" +
-                " -fx-font-weight: bold;" +
-                " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
-                " -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );");
-        selectedClassComboBox = new ComboBox<>(FXCollections.observableList(student.getClassAndResults()));
-        selectedClassComboBox.setStyle(" -fx-background-radius: 5;" +
-                " -fx-background-color: transparent;" +
-                " -fx-font-family: Verdana;" +
-                " -fx-font-size: 18;");
+        selectedClassText.setOnMouseClicked(e -> selectedClassComboBox.show());
+        selectedClassText.getStyleClass().add("selectedClassText");
+        selectedClassComboBox = new ComboBox<>(classAndResults);
+        selectedClassComboBox.getStyleClass().add("selectedClassCombo");
         selectedClassComboBox.getSelectionModel().selectedItemProperty().addListener(e -> {
-            selectedClassText.setText(selectedClassComboBox.getSelectionModel().getSelectedItem().toString());
-            if (selectedClassFilesListView != null) {
-                selectedClassFilesListView.setItems(selectedClassComboBox.getSelectionModel().getSelectedItem().getStudentClass().getFiles());
-            }
-        });
-        int dayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 2;
-        int currentTimeSlot = getCurrentTimeSlot();
-        Boolean timeSlotSet = false;
-        SetTimeSlot:
-        for (ClassAndResult car : student.getClassAndResults()) {
-            for (ClassTime ct : car.getStudentClass().getClassTimes()) {
-                if (ct.getDayOfWeek() == dayOfWeek && currentTimeSlot >= ct.getStartSlot() && currentTimeSlot <= ct.getEndSlot()) {
-                    selectedClassComboBox.getSelectionModel().select(car);
-                    timeSlotSet = true;
-                    break SetTimeSlot;
+            if (selectedClassComboBox.getSelectionModel().getSelectedIndex() >= 0) {
+                selectedClassText.setText(selectedClassComboBox.getSelectionModel().getSelectedItem().toString());
+                if (selectedClassFilesListView != null) {
+                    selectedClassFilesListView.setItems(null);
+                    ObservableList<StudentFileObservable> studentFiles = FXCollections.observableArrayList();
+                    for (StudentFile studentFile : selectedClassComboBox.getSelectionModel().getSelectedItem().getStudentClass().getFiles()) {
+                        studentFiles.add(new StudentFileObservable(studentFile));
+                    }
+                    selectedClassFilesListView.setItems(studentFiles);
                 }
             }
-        }
-        if (!timeSlotSet) {
-            selectedClassComboBox.getSelectionModel().select(0);
-        }
+        });
         selectedClassComboBox.setMinSize(50, 50);
         selectedClassComboBox.setMaxSize(50, 50);
         selectedClassResultsButton = new Button("My Results");
         selectedClassResultsButton.setOnAction(e -> {
-            new ResultDisplay(student.getClassAndResults(), selectedClassComboBox.getSelectionModel().getSelectedItem(), stage);
+            new ResultDisplay(selectedClassComboBox.getItems(), selectedClassComboBox.getSelectionModel().getSelectedItem(), stage);
         });
-        selectedClassResultsButton.setStyle(" -fx-background-radius: 15;" +
-                " -fx-border-radius: 15;" +
-                " -fx-background-insets: 0;" +
-                " -fx-border-width: 2;" +
-                " -fx-background-color: #FECD34;" +
-                " -fx-border-color: black;" +
-                " -fx-font-family: Verdana;" +
-                " -fx-font-weight: bold;" +
-                " -fx-font-size: 16;");
-        selectedClassResultsButton.setMinSize(250, 36);
+        selectedClassResultsButton.getStyleClass().add("classButton");
+        selectedClassResultsButton.setMinSize(200, 35);
         selectedClassResultsButton.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0, 0, 0, 0.6), 5, 0.0, 2, 2));
         selectedClassContactLecturerButton = new Button("Contact Lecturer");
         selectedClassContactLecturerButton.setOnAction(e -> {
@@ -289,34 +237,17 @@ public class Display extends Application{
                 //TODO open email to lecturer
             }
         });
-        selectedClassContactLecturerButton.setStyle(" -fx-background-radius: 15;" +
-                " -fx-border-radius: 15;" +
-                " -fx-background-insets: 0;" +
-                " -fx-border-width: 2;" +
-                " -fx-background-color: #FECD34;" +
-                " -fx-border-color: black;" +
-                " -fx-font-family: Verdana;" +
-                " -fx-font-weight: bold;" +
-                " -fx-font-size: 16;");
-        selectedClassContactLecturerButton.setMinSize(250, 36);
+        selectedClassContactLecturerButton.getStyleClass().add("classButton");
+        selectedClassContactLecturerButton.setMinSize(200, 35);
         selectedClassContactLecturerButton.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0, 0, 0, 0.6), 5, 0.0, 2, 2));
         selectedClassActionsPane = new HBox(selectedClassResultsButton, selectedClassContactLecturerButton);
         selectedClassActionsPane.setAlignment(Pos.CENTER);
         selectedClassActionsPane.setSpacing(50);
-        selectedClassFilesListView = new ListView<>(selectedClassComboBox.getSelectionModel().getSelectedItem().getStudentClass().getFiles());
-        selectedClassFilesListView.setStyle("-fx-background-color: rgba(66, 135, 167, .7);" +
-                " -fx-control-inner-background: transparent;" +
-                " -fx-background-radius: 15;" +
-                " -fx-background-insets: -10;" +
-                " -fx-border-color: black;" +
-                " -fx-border-radius: 15;" +
-                " -fx-border-insets: -10;" +
-                " -fx-border-width: 2;" +
-                " -fx-font-family: Verdana;" +
-                " -fx-font-size: 20");
-        selectedClassFilesListView.setCellFactory((ListView<StudentFile> param) -> new ListCell<StudentFile>() {
+        selectedClassFilesListView = new ListView<>();
+        selectedClassFilesListView.getStyleClass().add("selectedListView");
+        selectedClassFilesListView.setCellFactory(param -> new ListCell<StudentFileObservable>() {
             @Override
-            protected void updateItem(StudentFile file, boolean empty) {
+            protected void updateItem(StudentFileObservable file, boolean empty) {
                 super.updateItem(file, empty);
                 ImageView savedImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Saved.png")));
                 savedImageView.setFitHeight(32);
@@ -327,7 +258,7 @@ public class Display extends Application{
                 MenuItem openFileMenuItem = new MenuItem("Open File");
                 openFileMenuItem.setOnAction(event -> {
                     File f;
-                    if ((f = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getClassID() + "/" + file.getFileName())).exists() && f.length() == file.getFileLength()) {
+                    if ((f = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getStudentFile().getClassID() + "/" + file.getStudentFile().getFileName())).exists() && f.length() == file.getStudentFile().getFileLength()) {
                         try {
                             Desktop.getDesktop().open(f);
                         } catch (IOException e) {
@@ -342,8 +273,8 @@ public class Display extends Application{
                         dc.setTitle("Choose Directory to export to");
                         File f = dc.showDialog(stage);
                         if (f != null) {
-                            File target = new File(f.getAbsolutePath() + "/" + file.getFileName());
-                            File toCopy = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getClassID() + "/" + file.getFileName());
+                            File target = new File(f.getAbsolutePath() + "/" + file.getStudentFile().getFileName());
+                            File toCopy = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getStudentFile().getClassID() + "/" + file.getStudentFile().getFileName());
                             Files.copy(toCopy.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
                         }
                     } catch (Exception ex) {
@@ -351,39 +282,60 @@ public class Display extends Application{
                     }
                 });
                 MenuItem redownloadFileMenuItem = new MenuItem("Redownload File");
+                redownloadFileMenuItem.setOnAction(e -> connectionHandler.deleteFile(file.getStudentFile().getClassID(), file.getStudentFile().getFileName()));
                 ContextMenu savedContextMenu = new ContextMenu(openFileMenuItem, exportFileMenuItem, redownloadFileMenuItem);
-                savedContextMenu.setStyle("-fx-font-family: Verdana;" +
-                        " -fx-font-size: 18;");
+                savedContextMenu.getStyleClass().add("selectedContextMenu");
                 MenuItem downloadFileMenuItem = new MenuItem("Download File");
+                downloadFileMenuItem.setOnAction(e -> {
+                    file.getStudentFile().setValue(2);
+                    ConnectionHandler.FileDownloader fileDownloader = connectionHandler.new FileDownloader(file.getStudentFile());
+                    fileDownloader.start();
+                    file.getStudentFile().setFileDownloader(fileDownloader);
+                    connectionHandler.student.update();
+                });
                 ContextMenu downloadContextMenu = new ContextMenu(downloadFileMenuItem);
-                downloadContextMenu.setStyle("-fx-font-family: Verdana;" +
-                        " -fx-font-size: 18;");
+                downloadContextMenu.getStyleClass().add("selectedContextMenu");
                 setOnMouseClicked(event -> {
                     if (event.getClickCount() == 2) {
-                        File f;
-                        if ((f = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getClassID() + "/" + file.getFileName())).exists() && f.length() == file.getFileLength()) {
-                            try {
-                                Desktop.getDesktop().open(f);
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                        if (getGraphic().equals(savedImageView)) {
+                            File f;
+                            if ((f = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getStudentFile().getClassID() + "/" + file.getStudentFile().getFileName())).exists() && f.length() == file.getStudentFile().getFileLength()) {
+                                try {
+                                    Desktop.getDesktop().open(f);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
+                        } else if (getGraphic().equals(downloadImageView)) {
+                            downloadFileMenuItem.fire();
                         }
                     }
                 });
-                setGraphicTextGap(20);
-                if (empty || file == null || file.getFileName() == null) {
+                if (empty || file == null || file.getStudentFile().getFileName() == null) {
                     setText(null);
                     setContextMenu(null);
                     setGraphic(null);
                 } else {
-                    setText(getFileNameWithoutExtension(file.getFileName()));
-                    File f;
-                    if ((f = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getClassID() + "/" + file.getFileName())).exists() && f.length() == file.getFileLength()) {
+                    setText(getFileNameWithoutExtension(file.getStudentFile().getFileName()));
+                    if (file.getStudentFile().getValue() == 0) {
+                        setGraphic(downloadImageView);
+                        setGraphicTextGap(35);
+                        setContextMenu(downloadContextMenu);
+                    } else if (file.getStudentFile().getValue() == 1) {
                         setGraphic(savedImageView);
+                        setGraphicTextGap(35);
                         setContextMenu(savedContextMenu);
                     } else {
-                        setGraphic(downloadImageView);
-                        setContextMenu(downloadContextMenu);
+                        ProgressBar percentageBar = new ProgressBar(0);
+                        percentageBar.setMinSize(50, 30);
+                        percentageBar.setMaxSize(50, 30);
+                        percentageBar.progressProperty().bind(file.progressProperty());
+                        Text percentageText = new Text();
+                        percentageText.textProperty().bind(file.progressProperty().multiply(100).asString("%.0f").concat("%"));
+                        percentageText.getStyleClass().add("percentageText");
+                        StackPane percentagePane = new StackPane(percentageBar, percentageText);
+                        setGraphic(percentagePane);
+                        setGraphicTextGap(16);
                     }
                 }
             }
@@ -405,27 +357,22 @@ public class Display extends Application{
         selectedClassPane = new VBox(selectedClassHeadingPane, selectedClassActionsPane, selectedClassFilesPane);
         VBox.setVgrow(selectedClassFilesPane, Priority.ALWAYS);
         selectedClassPane.setSpacing(10);
-        selectedClassPane.setPadding(new Insets(15));
+        selectedClassPane.setPadding(new Insets(5));
         selectedClassPane.setAlignment(Pos.CENTER);
         //</editor-fold>
 
         //<editor-fold desc="Timetable Pane">
         //Setup timetable pane
         timetableText = new Text("Timetable");
-        timetableText.setStyle("-fx-font-size: 32pt;" +
-                " -fx-text-fill: black;" +
-                " -fx-font-family: \"Verdana\";" +
-                " -fx-font-weight: bold;" +
-                " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
-                " -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );");
+        timetableText.getStyleClass().add("headingText");
         timetableGridPane = new GridPane();
         ObservableList<ColumnConstraints> columnConstraints = FXCollections.observableArrayList();
         for (int i = 0; i < 14; i++) {
             ColumnConstraints col = new ColumnConstraints();
             if (i == 0) {
-                col.setPercentWidth(9);
+                col.setPercentWidth(4);
             } else {
-                col.setPercentWidth(7);
+                col.setPercentWidth(8);
             }
             columnConstraints.add(col);
         }
@@ -441,13 +388,189 @@ public class Display extends Application{
         }
         timetableGridPane.getColumnConstraints().addAll(columnConstraints);
         timetableGridPane.getRowConstraints().addAll(rowConstraints);
+        timetableGridPane.setGridLinesVisible(true);
+        timetableGridPane.getStyleClass().add("timeTablePane");
+        timetableGridPane.setMaxSize(1900, 780);
+        timetableGridPane.setMinSize(1400, 500);
+        HBox timetableInnerPane = new HBox(timetableGridPane);
+        timetableInnerPane.setAlignment(Pos.CENTER);
+        timetableInnerPane.getStyleClass().add("timeTableInnerPane");
+        HBox.setHgrow(timetableInnerPane, Priority.ALWAYS);
+        ScrollPane timetableScrollPane = new ScrollPane(timetableInnerPane);
+        timetableScrollPane.setFitToHeight(true);
+        timetableScrollPane.setFitToWidth(true);
+        timetableScrollPane.getStyleClass().add("timetableScrollPane");
+        timetablePane = new VBox(timetableText, timetableScrollPane);
+        timetablePane.setAlignment(Pos.CENTER);
+        timetablePane.setSpacing(15);
+        timetablePane.setPadding(new Insets(10));
+        VBox.setVgrow(timetableScrollPane, Priority.ALWAYS);
+        //</editor-fold>
+
+        //<editor-fold desc="Notice Board Pane">
+        //Setup notice board pane
+        Text noticeBoardText = new Text("Notice Board");
+        noticeBoardText.getStyleClass().add("headingText");
+        bulletinBoardPane = new FlowPane();
+        populateNoticeBoard();
+        bulletinBoardPane.setAlignment(Pos.CENTER);
+        bulletinBoardPane.setHgap(10);
+        bulletinBoardPane.setVgap(10);
+        bulletinBoardPane.setOrientation(Orientation.HORIZONTAL);
+        bulletinBoardPane.setPadding(new Insets(20));
+        bulletinBoardPane.getStyleClass().add("bulletinBoardPane");
+        ScrollPane bulletinBoardScrollPane = new ScrollPane(new StackPane(bulletinBoardPane));
+        bulletinBoardPane.prefHeightProperty().bind(bulletinBoardScrollPane.heightProperty().subtract(42));
+        bulletinBoardScrollPane.setFitToWidth(true);
+        bulletinBoardScrollPane.getStyleClass().add("bulletinBoardScrollPane");
+        VBox noticeBoardPane = new VBox(noticeBoardText, bulletinBoardScrollPane);
+        noticeBoardPane.setPadding(new Insets(10, 100, 10, 100));
+        noticeBoardPane.setSpacing(20);
+        noticeBoardPane.setAlignment(Pos.CENTER);
+        VBox.setVgrow(bulletinBoardScrollPane, Priority.ALWAYS);
+        //</editor-fold>
+
+        //Setup tab pane
+        Tab classesTab = new Tab("   My Classes   ", selectedClassPane);
+        classesTab.setClosable(false);
+        Tab timetableTab = new Tab("   My Timetable   ", timetablePane);
+        timetableTab.setClosable(false);
+        Tab noticeBoardTab = new Tab("   Notice Board   ", noticeBoardPane);
+        noticeBoardTab.setClosable(false);
+        tabPane = new TabPane(classesTab, timetableTab, noticeBoardTab);
+
+        //Setup heading pane
+        headingPane = new StackPane();
+        headingPane.getStyleClass().add("headingPane");
+        headingPane.setMaxHeight(150);
+        headingPane.setPrefHeight(150);
+        headingPane.setMinHeight(100);
+
+        //<editor-fold desc="Bottom Pane">
+        //Setup bottom Pane
+        Circle websiteLink = new Circle(15, new ImagePattern(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png"))));
+        websiteLink.setOnMouseClicked(e -> {
+            try {
+                Desktop.getDesktop().browse(new URI("http://swooosh.ddns.net"));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+        Text websiteText = new Text("Website");
+        HBox websitePane = new HBox(websiteLink, websiteText);
+        websitePane.setAlignment(Pos.CENTER_LEFT);
+        websitePane.setSpacing(5);
+        Text settingsText = new Text("Settings");
+        Circle settingsLink = new Circle(15, new ImagePattern(new Image(getClass().getClassLoader().getResourceAsStream("Settings.png"))));
+        settingsLink.setOnMouseClicked(e -> new Settings(stage));
+        HBox settingsPane = new HBox(settingsText, settingsLink);
+        settingsPane.setAlignment(Pos.CENTER_LEFT);
+        settingsPane.setSpacing(5);
+        settingsPane.setAlignment(Pos.CENTER_RIGHT);
+        Text developerText = new Text("Developed by Swooosh Apps Solutions");
+        developerText.getStyleClass().add("developerText");
+        HBox developerPane = new HBox(developerText);
+        developerPane.setAlignment(Pos.CENTER);
+        developerPane.setSpacing(5);
+        HBox bottomPane = new HBox(websitePane, developerPane, settingsPane);
+        bottomPane.setPadding(new Insets(5));
+        bottomPane.getStyleClass().add("bottomPane");
+        HBox.setHgrow(developerPane, Priority.ALWAYS);
+        //</editor-fold>
+
+        //Setup student pane
+        studentPane = new VBox(headingPane, tabPane, bottomPane);
+        studentPane.setAlignment(Pos.CENTER);
+        VBox.setVgrow(headingPane, Priority.ALWAYS);
+        VBox.setVgrow(tabPane, Priority.ALWAYS);
+
+        //Setup background pane
+        backgroundPane = new StackPane();
+        backgroundPane.getStyleClass().add("backgroundPane");
+        backgroundPane.setEffect(new GaussianBlur(10000));
+
+        //Setup content pane
+        contentPane = new StackPane(backgroundPane, loginPane); //TODO
+        contentPane.setAlignment(Pos.CENTER);
+
+        //Setup login pane animation
+        FadeTransition fadeTransition = new FadeTransition(Duration.millis(2000), loginPane);
+        fadeTransition.setFromValue(0);
+        fadeTransition.setToValue(1);
+        fadeTransition.play();
+
+        //Setup student update listener
+        connectionHandler.student.update.addListener((observable, oldV, newV) -> {
+            if (newV) {
+                System.out.println("Student updated");
+                if (connectionHandler.student.getStudent() != null) {
+                    String prevSelected = null;
+                    if (!selectedClassComboBox.getSelectionModel().isEmpty()) {
+                        prevSelected = selectedClassComboBox.getSelectionModel().getSelectedItem().getStudentClass().getModuleNumber();
+                    }
+                    classAndResults.clear();
+                    classAndResults.addAll(connectionHandler.student.getStudent().getClassAndResults());
+                    if (prevSelected == null) {
+                        SetTimeSlot:
+                        if (!selectedClassComboBox.getItems().isEmpty()) {
+                            int dayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1;
+                            int currentTimeSlot = getCurrentTimeSlot();
+                            for (ClassAndResult car : selectedClassComboBox.getItems()) {
+                                for (ClassTime ct : car.getStudentClass().getClassTimes()) {
+                                    if (ct.getDayOfWeek() == dayOfWeek && currentTimeSlot >= ct.getStartSlot() && currentTimeSlot <= ct.getEndSlot()) {
+                                        selectedClassComboBox.getSelectionModel().select(car);
+                                        break SetTimeSlot;
+                                    }
+                                }
+                            }
+                            selectedClassComboBox.getSelectionModel().select(0);
+                        }
+                    } else {
+                        for (ClassAndResult car : classAndResults) {
+                            if (car.getStudentClass().getModuleNumber().equals(prevSelected)) {
+                                selectedClassComboBox.getSelectionModel().select(car);
+                            }
+                        }
+                    }
+                    Platform.runLater(() -> stage.setTitle("Campus Live Student " + connectionHandler.getConnectionType() + " (" + connectionHandler.student.getStudent().getCampus() + ") " + getBuild()));
+                    populateTimetable();
+                }
+            }
+        });
+
+        //Setup notice board update listener
+        connectionHandler.noticeBoard.addListener((InvalidationListener) e -> {
+            if (!connectionHandler.noticeBoard.isEmpty()) {
+                populateNoticeBoard();
+            }
+        });
+
+        //Setup scene
+        scene = new Scene(contentPane);
+        scene.getStylesheets().add(getClass().getClassLoader().getResource("CampusLiveStyle.css").toExternalForm());
+
+        //Select and show scene
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    private void populateTimetable() {
+        List<ClassAndResult> classAndResults = selectedClassComboBox.getItems();
+        ObservableList<Node> nodesToRemove = FXCollections.observableArrayList();
+        for (Node node : timetableGridPane.getChildren()) {
+            if (node instanceof Label) {
+                nodesToRemove.add(node);
+            }
+        }
+        for (Node node : nodesToRemove) {
+            timetableGridPane.getChildren().remove(node);
+        }
         String[] weekdays = {"Mon", "Tue", "Wed", "Thu", "Fri"};
         for (int i = 0; i < 5; i++) {
             Label label = new Label(weekdays[i]);
-            label.setStyle("-fx-font-family: Verdana;" +
-                    " -fx-font-size: 26;");
-            label.setMaxSize(150, 150);
-            label.setMinSize(100, 100);
+            label.getStyleClass().add("timeTableWeekdays");
+            label.setMaxSize(100, 100);
+            label.setMinSize(50, 50);
             label.setAlignment(Pos.CENTER);
             label.setPadding(new Insets(5));
             timetableGridPane.add(label, 0, i + 1);
@@ -455,8 +578,7 @@ public class Display extends Application{
         String[] timeSlots = {"08:00 - 08:45", "09:00 - 09:45", "10:00 - 10:45", "11:00 - 11:45", "12:00 - 12:45", "13:00 - 13:45", "14:00 - 14:45", "15:00 - 15:45", "16:00 - 16:45", "17:00 - 17:45", "18:00 - 18:45", "18:45 - 19:30", "19:30 - 20:15"};
         for (int i = 0; i < timeSlots.length; i++) {
             Label label = new Label(timeSlots[i]);
-            label.setStyle("-fx-font-family: Verdana;" +
-                    " -fx-font-size: 12;");
+            label.getStyleClass().add("timeTableText");
             label.setMaxSize(150, 150);
             label.setMinSize(100, 100);
             label.setAlignment(Pos.CENTER);
@@ -464,35 +586,31 @@ public class Display extends Application{
             label.setPadding(new Insets(5));
             timetableGridPane.add(label, i + 1, 0);
         }
+        for (ClassAndResult cr : classAndResults) {
+            String moduleName = cr.getStudentClass().getModuleName();
+            String lecturerInitials = cr.getStudentClass().getLecturerFirstName().charAt(0) + "" + cr.getStudentClass().getLecturerLastName().charAt(0);
+            for (ClassTime ct : cr.getStudentClass().getClassTimes()) {
+                for (int i = ct.getStartSlot(); i <= ct.getEndSlot(); i++) {
+                    Label label = new Label(moduleName + "\n\n" + lecturerInitials + " (" + ct.getRoomNumber() + ")");
+                    label.getStyleClass().add("timeTableText");
+                    label.setMaxSize(150, 150);
+                    label.setMinSize(100, 100);
+                    label.setWrapText(true);
+                    label.setAlignment(Pos.TOP_CENTER);
+                    label.setPadding(new Insets(5));
+                    label.setOnMouseClicked(e -> {
+                        selectedClassComboBox.getSelectionModel().select(cr);
+                        tabPane.getSelectionModel().select(0);
+                    });
+                    timetableGridPane.add(label, i, ct.getDayOfWeek());
+                }
+            }
+        }
         timetableGridPane.setGridLinesVisible(true);
-        timetableGridPane.setMaxSize(1900, 780);
-        timetableGridPane.setMinSize(1400, 500);
-        HBox timetableInnerPane = new HBox(timetableGridPane);
-        timetableInnerPane.setAlignment(Pos.CENTER);
-        timetableInnerPane.setStyle("-fx-border-color: black");
-        HBox.setHgrow(timetableInnerPane, Priority.ALWAYS);
-        ScrollPane timetableScrollPane = new ScrollPane(timetableInnerPane);
-        timetableScrollPane.setFitToHeight(true);
-        timetableScrollPane.setFitToWidth(true);
-        timetableScrollPane.setStyle("-fx-border-color: black");
-        timetablePane = new VBox(timetableText, timetableScrollPane);
-        timetablePane.setAlignment(Pos.CENTER);
-        timetablePane.setSpacing(15);
-        timetablePane.setPadding(new Insets(25));
-        VBox.setVgrow(timetableScrollPane, Priority.ALWAYS);
-        populateTimetable();
-        //</editor-fold>
+    }
 
-        //<editor-fold desc="Notice Board Pane">
-        //Setup notice board pane
-        Text noticeBoardText = new Text("Notice Board");
-        noticeBoardText.setStyle("-fx-font-size: 32pt;" +
-                " -fx-text-fill: black;" +
-                " -fx-font-family: \"Verdana\";" +
-                " -fx-font-weight: bold;" +
-                " -fx-background-color: linear-gradient(#ffffff, #d3d3d3);" +
-                " -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );");
-        ObservableList<NoticeBoard> noticeBoards = connectionHandler.getNoticeBoards();
+    public void populateNoticeBoard() {
+        ObservableList<NoticeBoard> noticeBoards = connectionHandler.noticeBoard;
         ObservableList<StackPane> noticePanes = FXCollections.observableArrayList();
         for (NoticeBoard nb : noticeBoards) {
             ImageView pushpinImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Pushpin.png")));
@@ -503,13 +621,10 @@ public class Display extends Application{
             pushpinPane.setPadding(new Insets(-15, 0, -40, 0));
             Text headingLabel = new Text(nb.getHeading());
             headingLabel.setWrappingWidth(450);
-            headingLabel.setStyle("-fx-font-family: Verdana;" +
-                    " -fx-font-size: 28;" +
-                    " -fx-font-weight: bold;");
-            Text descriptionLabel = new Text(nb.getDesription());
+            headingLabel.getStyleClass().add("noteHeading");
+            Text descriptionLabel = new Text(nb.getDescription());
             descriptionLabel.setWrappingWidth(450);
-            descriptionLabel.setStyle("-fx-font-family: Verdana;" +
-                    " -fx-font-size: 22;");
+            descriptionLabel.getStyleClass().add("noteDescription");
             VBox noticePane = new VBox(pushpinPane, headingLabel, descriptionLabel);
             VBox.setVgrow(descriptionLabel, Priority.ALWAYS);
             noticePane.setAlignment(Pos.TOP_LEFT);
@@ -528,147 +643,12 @@ public class Display extends Application{
             noticePane.setMinWidth(500);
             noticePane.setMaxWidth(500);
             StackPane shadowPane = new StackPane(noticePane);
-            shadowPane.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 5, 0.0, -5, 5);");
+            shadowPane.getStyleClass().add("noteShadow");
             shadowPane.setRotate((Math.random() * 3.0) - 1.5);
-            FlowPane.setMargin(shadowPane, new Insets(3));
+            FlowPane.setMargin(shadowPane, new Insets(5));
             noticePanes.add(shadowPane);
         }
-        FlowPane bulletinBoardPane = new FlowPane();
         bulletinBoardPane.getChildren().addAll(noticePanes);
-        bulletinBoardPane.setAlignment(Pos.CENTER);
-        bulletinBoardPane.setOrientation(Orientation.HORIZONTAL);
-        bulletinBoardPane.setPadding(new Insets(20));
-        bulletinBoardPane.setStyle("-fx-background-image: url(\"BulletinBoard.jpg\");" +
-                " -fx-background-size: 75%;");
-        ScrollPane bulletinBoardScrollPane = new ScrollPane(new StackPane(bulletinBoardPane));
-        bulletinBoardPane.prefHeightProperty().bind(bulletinBoardScrollPane.heightProperty().subtract(42));
-        bulletinBoardScrollPane.setFitToWidth(true);
-        bulletinBoardScrollPane.setStyle("-fx-border-color: rgba(0, 135, 167, 0.6);" +
-                " -fx-border-width: 20;");
-        VBox noticeBoardPane = new VBox(noticeBoardText, bulletinBoardScrollPane);
-        noticeBoardPane.setPadding(new Insets(15, 100, 15, 100));
-        noticeBoardPane.setSpacing(20);
-        noticeBoardPane.setAlignment(Pos.CENTER);
-        VBox.setVgrow(bulletinBoardScrollPane, Priority.ALWAYS);
-        //</editor-fold>
-
-        //Setup chat pane
-        //TODO
-
-        //Setup tab pane
-        Tab classesTab = new Tab("My Classes", selectedClassPane);
-        classesTab.setClosable(false);
-        Tab timetableTab = new Tab("My Timetable", timetablePane);
-        timetableTab.setClosable(false);
-        Tab noticeBoardTab = new Tab("Notice Board", noticeBoardPane);
-        noticeBoardTab.setClosable(false);
-        tabPane = new TabPane(classesTab, timetableTab, noticeBoardTab);
-
-        //Setup heading pane
-        headingPane = new StackPane();
-        headingPane.setStyle("-fx-background-image: url(\"CampusLiveBanner.png\");" +
-                " -fx-background-size: auto 100%;" +
-                " -fx-background-position: center;" +
-                " -fx-background-repeat: no-repeat;" +
-                " -fx-background-color: linear-gradient(rgba(66, 135, 167, .9), rgba(66, 135, 167, .7));" +
-                " -fx-accent: white");
-        headingPane.setMaxHeight(150);
-        headingPane.setPrefHeight(150);
-        headingPane.setMinHeight(100);
-
-        //<editor-fold desc="Bottom Pane">
-        //Setup bottom Pane
-        Circle websiteLink = new Circle(15, new ImagePattern(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png"))));
-        websiteLink.setOnMouseClicked(e -> {
-            try {
-                Desktop.getDesktop().browse(new URI("http://swooosh.ddns.net"));
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        });
-        Text websiteText = new Text("Website");
-        websiteText.setStyle("-fx-font-family: Verdana;" +
-                " -fx-font-size: 16;");
-        HBox websitePane = new HBox(websiteLink, websiteText);
-        websitePane.setAlignment(Pos.CENTER_LEFT);
-        websitePane.setSpacing(5);
-        Text settingsText = new Text("Settings");
-        settingsText.setStyle("-fx-font-family: Verdana;" +
-                " -fx-font-size: 16;");
-        Circle settingsLink = new Circle(15, new ImagePattern(new Image(getClass().getClassLoader().getResourceAsStream("Settings.png"))));
-        settingsLink.setOnMouseClicked(e -> {
-            //TODO open settings
-        });
-        HBox settingsPane = new HBox(settingsText, settingsLink);
-        settingsPane.setAlignment(Pos.CENTER_LEFT);
-        settingsPane.setSpacing(5);
-        settingsPane.setAlignment(Pos.CENTER_RIGHT);
-        Text developerText = new Text("Developed by Swooosh Apps Solutions");
-        developerText.setStyle("-fx-font-family: Verdana;" +
-                " -fx-font-size: 12;" +
-                " -fx-text-fill: dimgrey;");
-        HBox developerPane = new HBox(developerText);
-        developerPane.setAlignment(Pos.CENTER);
-        developerPane.setSpacing(5);
-        HBox bottomPane = new HBox(websitePane, developerPane, settingsPane);
-        bottomPane.setPadding(new Insets(5));
-        bottomPane.setStyle("-fx-background-color: linear-gradient(rgba(66, 135, 167, .5), rgba(66, 135, 167, .9));");
-        HBox.setHgrow(developerPane, Priority.ALWAYS);
-        //</editor-fold>
-
-        //Setup student pane
-        studentPane = new VBox(headingPane, tabPane, bottomPane);
-        studentPane.setAlignment(Pos.CENTER);
-        VBox.setVgrow(headingPane, Priority.ALWAYS);
-        VBox.setVgrow(tabPane, Priority.ALWAYS);
-
-        //Setup background pane
-        backgroundPane = new StackPane();
-        backgroundPane.setStyle("-fx-background-image: url(\"Background.png\");" +
-                " -fx-background-size: auto 100%;" +
-                " -fx-background-position: center;" +
-                " -fx-background-repeat: no-repeat;" +
-                " -fx-background-color: white;" +
-                " -fx-accent: white");
-        backgroundPane.setEffect(new GaussianBlur(10000));
-
-        //Setup content pane
-        contentPane = new StackPane(backgroundPane, loginPane); //TODO
-        contentPane.setAlignment(Pos.CENTER);
-;
-        //Setup scene
-        scene = new Scene(contentPane);
-        scene.getStylesheets().add(getClass().getClassLoader().getResource("CampusLiveStyle.css").toExternalForm());
-
-        //Select and show scene
-        stage.setScene(scene);
-        stage.show();
-    }
-
-    private void populateTimetable() {
-        List<ClassAndResult> classAndResults = student.getClassAndResults();
-        for (ClassAndResult cr : classAndResults) {
-            String moduleName = cr.getStudentClass().getModuleName();
-            String lecturerInitials = cr.getStudentClass().getLecturerFirstName().charAt(0) + "" + cr.getStudentClass().getLecturerLastName().charAt(0);
-            for (ClassTime ct : cr.getStudentClass().getClassTimes()) {
-                for (int i = ct.getStartSlot(); i <= ct.getEndSlot(); i++) {
-                    Label label = new Label(moduleName + "\n\n" + lecturerInitials + " (" + ct.getRoomNumber() + ")");
-                    label.setStyle("-fx-font-family: Verdana;" +
-                            " -fx-font-size: 11;");
-                    label.setMaxSize(150, 150);
-                    label.setMinSize(100, 100);
-                    label.setWrapText(true);
-                    label.setAlignment(Pos.TOP_CENTER);
-                    label.setPadding(new Insets(5));
-                    label.setOnMouseClicked(e -> {
-                        selectedClassComboBox.getSelectionModel().select(cr);
-                        System.out.println(((Label) e.getSource()).getWidth());
-                        tabPane.getSelectionModel().select(0);
-                    });
-                    timetableGridPane.add(label, i, ct.getDayOfWeek());
-                }
-            }
-        }
     }
 
     public String getFileNameWithoutExtension(String fileName) {

@@ -1,8 +1,7 @@
-package net.ddns.swooosh.campuslivestudent.models;
-
-import javafx.collections.ObservableList;
+package models;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class Student implements Serializable {
 
@@ -12,9 +11,9 @@ public class Student implements Serializable {
     private String FirstName;
     private String lastName;
     private String email;
-    private ObservableList<ClassAndResult> classAndResults;
+    private List<ClassAndResult> classAndResults;
 
-    public Student(String studentNumber, String campus, String qualification, String firstName, String lastName, String email, ObservableList<ClassAndResult> classAndResults) {
+    public Student(String studentNumber, String campus, String qualification, String firstName, String lastName, String email, List<ClassAndResult> classAndResults) {
         this.studentNumber = studentNumber;
         this.campus = campus;
         this.qualification = qualification;
@@ -48,7 +47,7 @@ public class Student implements Serializable {
         return email;
     }
 
-    public ObservableList<ClassAndResult> getClassAndResults() {
+    public List<ClassAndResult> getClassAndResults() {
         return classAndResults;
     }
 }

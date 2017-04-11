@@ -1,34 +1,286 @@
+@font-face {
+    src: url("ProximaNova.ttf");
+}
+
+@font-face {
+    src: url("Penultimate.ttf");
+}
+
+@font-face {
+    src: url("ArchitectsDaughter.ttf");
+}
+
+.root {
+    -fx-font-family: "Proxima Nova Alt Rg";
+    -fx-font-size: 16px;
+}
+
 .tab-pane .tab-header-area .tab-header-background {
-    -fx-background-color: rgba(66, 135, 167, .6);
+    -fx-background-color: transparent;
 }
-.tab-pane {
-    -fx-tab-min-width:90px;
+
+.tab {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
 }
-.tab{
-    -fx-background-insets: 0 1 0 1,0,0;
-    -fx-border-radius: 10 10 0 0, 10 10 0 0;
-    -fx-border-insets: -6 -9 -8 -8, -5 -8 -7 -7;
-}
+
 .tab-pane .tab {
-    -fx-background-color: rgba(0, 135, 167, 0.6);
-    -fx-background-radius: 10 10 0 0;
-    -fx-border-radius: 10 10 0 0;
-    -fx-font-size: 13;
-    -fx-font-family: Verdana;
+    -fx-background-color: transparent;
+    -fx-font-size: 14;
+    -fx-text-fill: grey;
+    -fx-font-weight: bolder;
 }
-.tab-pane .tab:selected {
-    -fx-background-color: white;
+
+.tab-label {
+    -fx-text-fill: grey;
 }
-.tab .tab-label .tab:selected .tab-label{
-    -fx-alignment: CENTER;
+
+.tab:selected .tab-label {
     -fx-text-fill: black;
-    -fx-font-size: 26px;
-    -fx-font-weight: bold;
-    -fx-font-family: Verdana;
+    -fx-font-size: 16;
+    -fx-border-color: deepskyblue;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-insets: -5;
 }
-.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
-    -fx-border-radius: 9 9 0 0, 8 8 0 0;
-}
+
 .scroll-pane > .viewport {
     -fx-background-color: transparent;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.button, .text-field, .password-field {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0, 4, 4);
+}
+
+.hyperlink {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0, 2, 2);
+    -fx-font-size: 11pt;
+}
+
+.button:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 5, 0, 4, 4);
+}
+
+.button:pressed {
+    -fx-scale-x: 0.99;
+    -fx-scale-y: 0.99;
+    -fx-scale-z: 0.99;
+}
+
+.progress-bar {
+    -fx-progress-color: #24b5ff;
+}
+
+/*Custom classes*/
+.settingsButton {
+    -fx-background-color: rgba(72, 192, 225, 0.5);
+    -fx-background-radius: 15;
+    -fx-border-radius: 15;
+    -fx-background-insets: 0;
+    -fx-border-width: 1;
+    -fx-border-color: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 16;
+}
+
+.settingsButton:hover {
+    -fx-background-color: rgba(72, 192, 225, 0.9);
+}
+
+.loginFields {
+    -fx-prompt-text-fill: derive(-fx-control-inner-background, -45%);
+    -fx-font-size: 12pt;
+    -fx-font-weight: bold;
+    -fx-background-color: linear-gradient(#ffffff, #d3d3d3);
+    -fx-background-radius: 20, 20, 20, 20;
+    -fx-background-image: url("User.png");
+    -fx-background-repeat: no-repeat;
+    -fx-background-size: auto 50%;
+    -fx-background-position: 5, 5, 5, 10;
+}
+
+.loginPassword {
+    -fx-background-position: 5, 5, 5, 15;
+    -fx-background-image: url("Password.png");
+}
+
+.loginButton {
+    -fx-font-size: 16pt;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-color: #4287a7;
+    -fx-background-radius: 20, 20, 20, 20;
+}
+
+.loginTooltip {
+    -fx-background-color: red;
+    -fx-background-radius: 10, 10, 10, 10;
+    -fx-text-fill: white;
+}
+
+.selectedClassText {
+    -fx-font-size: 26pt;
+    -fx-font-weight: bold;
+    -fx-background-color: linear-gradient(#ffffff, #d3d3d3);
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0, 2, 2);
+}
+
+.selectedClassCombo {
+    -fx-background-color: transparent;
+    -fx-font-size: 18;
+}
+
+.classButton {
+    -fx-background-radius: 20;
+    -fx-border-radius: 15;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-width: 2;
+    -fx-background-color: #FECD34;
+    -fx-border-color: black;
+    -fx-font-weight: bold;
+    -fx-font-size: 16;
+}
+
+.classButton:hover {
+    -fx-background-color: #ebb737;
+}
+
+.selectedListView {
+    -fx-background-color: rgba(66, 135, 167, .7);
+    -fx-control-inner-background: rgba(66, 135, 167, 0);
+    -fx-background-radius: 15;
+    -fx-background-insets: -10;
+    -fx-border-color: black;
+    -fx-border-radius: 15;
+    -fx-border-insets: -10;
+    -fx-border-width: 2;
+    -fx-font-size: 20;
+}
+
+.selectedListView .list-cell .text {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0, 2, 2);
+}
+
+.selectedListView .list-cell {
+    -fx-text-fill: white;
+}
+
+.selectedListView .list-cell:filled:hover {
+    -fx-background-color: rgba(66, 135, 167, .5);
+}
+
+.selectedListView .list-cell:filled:focused:selected {
+    -fx-background-color: -fx-focus-color, -fx-cell-focus-inner-border, -fx-selection-bar;
+    -fx-background-insets: 0, 1, 2;
+    -fx-background: -fx-accent;
+    -fx-text-fill: -fx-selection-bar-text;
+}
+
+.selectedContextMenu {
+    -fx-font-size: 18;
+}
+
+.percentageText {
+    -fx-font-size: 14px;
+}
+
+.headingText {
+    -fx-font-size: 32pt;
+    -fx-font-weight: bold;
+    -fx-background-color: linear-gradient(#ffffff, #d3d3d3);
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0.0, 0, 1);
+}
+
+.timeTablePane {
+    -fx-background-color: rgba(66, 135, 167, .7);
+}
+
+.timeTableWeekdays {
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+}
+
+.timeTableText {
+    -fx-font-size: 13;
+    -fx-font-weight: bold;
+}
+
+.timeTableInnerPane {
+    -fx-border-color: black;
+}
+
+.timetableScrollPane {
+    -fx-border-color: black;
+    -fx-background-color: transparent
+}
+
+.bulletinBoardPane {
+    -fx-background-image: url("BulletinBoard.jpg");
+    -fx-background-size: 75%;
+}
+
+.bulletinBoardScrollPane {
+    -fx-border-color: rgba(0, 135, 167, 0.6);
+    -fx-border-width: 20;
+}
+
+.headingPane {
+    -fx-background-image: url("CampusLiveBanner.png");
+    -fx-background-size: auto 100%;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+    -fx-background-color: linear-gradient(rgba(66, 135, 167, .75) 20%, rgba(66, 135, 167, .9) 60%, rgba(66, 135, 167, .75) 80%);
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0.0, 0, 4);
+}
+
+.developerText {
+    -fx-font-size: 12;
+    -fx-text-fill: dimgrey;
+}
+
+.bottomPane {
+    -fx-background-color: linear-gradient(rgba(66, 135, 167, .75), rgba(66, 135, 167, .9));
+}
+
+.backgroundPane {
+    -fx-background-image: url("Background.png");
+    -fx-background-size: auto 100%;
+    -fx-background-position: center;
+    -fx-background-repeat: no-repeat;
+    -fx-background-color: white;
+    -fx-accent: white;
+}
+
+.daysText {
+    -fx-font-size: 26;
+}
+
+.smallText {
+    -fx-font-size: 12px;
+}
+
+.smallerText {
+    -fx-font-size: 11px;
+}
+
+.largeText {
+    -fx-font-size: 22px;
+}
+
+.noteShadow {
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0.0, -5, 5);
+}
+
+.noteHeading {
+    -fx-font-family: "Penultimate";
+    -fx-font-size: 32px;
+}
+
+.noteDescription {
+    -fx-font-family: "Architects Daughter";
+    -fx-font-size: 22px;
 }

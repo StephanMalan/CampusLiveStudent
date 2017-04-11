@@ -1,4 +1,4 @@
-package net.ddns.swooosh.campuslivestudent.models;
+package models;
 
 import java.io.Serializable;
 

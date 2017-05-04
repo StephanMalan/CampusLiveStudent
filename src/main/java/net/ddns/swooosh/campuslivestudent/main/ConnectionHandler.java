@@ -16,6 +16,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.List;
 
 public class ConnectionHandler {
@@ -144,15 +145,15 @@ public class ConnectionHandler {
     public void updateSavedFiles() {
         Boolean updated = false;
         for (ClassAndResult car : student.getStudent().getClassAndResults()) {
-            for (StudentFile sf : car.getStudentClass().getFiles()) {
+            for (ClassFile cf : car.getStudentClass().getFiles()) {
                 File f;
-                if ((f = new File(Display.LOCAL_CACHE + "/" + sf.getClassID() + "/" + sf.getFileName())).exists() && f.length() == sf.getFileLength()) {
-                    if (sf.getValue() != 1) {
-                        sf.setValue(1);
+                if ((f = new File(Display.LOCAL_CACHE + "/" + cf.getClassID() + "/" + cf.getFileName())).exists() && f.length() == cf.getFileLength()) {
+                    if (cf.getValue() != 1) {
+                        cf.setValue(1);
                         updated = true;
                     }
-                } else if (sf.getValue() == 1) {
-                    sf.setValue(0);
+                } else if (cf.getValue() == 1) {
+                    cf.setValue(0);
                     updated = true;
 
                 }
@@ -183,6 +184,19 @@ public class ConnectionHandler {
         }
         inputQueue.remove(objectToRemove);
         return result;
+    }
+
+    public List<ContactDetails> getContactDetails() {
+        return Arrays.asList(new ContactDetails("Director", "023 626 2576", "info@cti.ac.za"),
+                new ContactDetails("Network Technician", "023 626 2576", "info@cti.ac.za"),
+                new ContactDetails("Jo-ann", "023 626 2576", "info@cti.ac.za"),
+                new ContactDetails("Coralie", "023 626 2576", "info@cti.ac.za"),
+                new ContactDetails("Tem", "023 626 2576", "info@cti.ac.za"),
+                new ContactDetails("Stephen", "023 626 2576", "info@cti.ac.za"),
+                new ContactDetails("Henk", "023 626 2576", "info@cti.ac.za"),
+                new ContactDetails("Nyarai", "023 626 2576", "info@cti.ac.za"),
+                new ContactDetails("Emanuel", "023 626 2576", "info@cti.ac.za")
+        );
     }
 
     public Boolean studentInitialized() {
@@ -225,10 +239,10 @@ public class ConnectionHandler {
 
         public volatile IntegerProperty size;
         public volatile DoubleProperty progress;
-        StudentFile file;
+        ClassFile file;
         byte[] bytes;
 
-        public FileDownloader(StudentFile file) {
+        public FileDownloader(ClassFile file) {
             this.file = file;
             bytes = new byte[file.getFileLength()];
             size = new SimpleIntegerProperty(0);

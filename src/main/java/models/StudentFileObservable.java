@@ -8,30 +8,30 @@ import net.ddns.swooosh.campuslivestudent.main.ConnectionHandler;
 
 public class StudentFileObservable {
 
-    private StudentFile studentFile;
+    private ClassFile classFile;
     private DoubleProperty progress;
     private IntegerProperty type;
 
-    public StudentFileObservable(StudentFile studentFile) {
-        this.studentFile = studentFile;
+    public StudentFileObservable(ClassFile classFile) {
+        this.classFile = classFile;
         progress = new SimpleDoubleProperty();
         type = new SimpleIntegerProperty();
     }
 
-    public StudentFile getStudentFile() {
-        return studentFile;
+    public ClassFile getClassFile() {
+        return classFile;
     }
 
     public DoubleProperty progressProperty() {
         progress.set(0);
-        if (studentFile.getFileDownloader() != null) {
-            progress.set(((ConnectionHandler.FileDownloader) studentFile.getFileDownloader()).progress.get());
+        if (classFile.getFileDownloader() != null) {
+            progress.set(((ConnectionHandler.FileDownloader) classFile.getFileDownloader()).progress.get());
         }
         return progress;
     }
 
     public IntegerProperty typeProperty() {
-        type.set(studentFile.getValue());
+        type.set(classFile.getValue());
         return type;
     }
 }

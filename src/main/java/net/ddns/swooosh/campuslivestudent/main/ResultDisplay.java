@@ -168,7 +168,7 @@ public class ResultDisplay extends Application {
                 if (r.getResult() != -1D) {
                     resultPerc = r.getResult() * 100 / r.getResultMax();
                 }
-                Double weightedResult = resultPerc * r.getResultsWeight();
+                Double weightedResult = resultPerc * r.getFinalWeight();
                 weightedTotal += weightedResult;
                 Label result;
                 if (r.getResult() == -1D) {

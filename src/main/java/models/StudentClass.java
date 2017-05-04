@@ -12,9 +12,9 @@ public class StudentClass implements Serializable {
     private String lecturerNumber;
     private String lecturerEmail;
     private List<ClassTime> classTimes;
-    private List<StudentFile> files;
+    private List<ClassFile> files;
 
-    public StudentClass(String moduleName, String moduleNumber, String lecturerFirstName, String lecturerLastName, String lecturerNumber, String lecturerEmail, List<ClassTime> classTimes, List<StudentFile> files) {
+    public StudentClass(String moduleName, String moduleNumber, String lecturerFirstName, String lecturerLastName, String lecturerNumber, String lecturerEmail, List<ClassTime> classTimes, List<ClassFile> files) {
         this.moduleName = moduleName;
         this.moduleNumber = moduleNumber;
         this.lecturerFirstName = lecturerFirstName;
@@ -53,7 +53,7 @@ public class StudentClass implements Serializable {
         return classTimes;
     }
 
-    public List<StudentFile> getFiles() {
+    public List<ClassFile> getFiles() {
         return files;
     }
 }

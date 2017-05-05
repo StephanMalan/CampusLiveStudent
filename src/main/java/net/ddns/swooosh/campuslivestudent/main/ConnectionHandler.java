@@ -22,7 +22,7 @@ import java.util.List;
 public class ConnectionHandler {
 
     public static final int PORT = 25760;
-    public static final String LOCAL_ADDRESS = "127.0.0.1";
+    public static final String LOCAL_ADDRESS = "192.168.1.105";
     public static final String INTERNET_ADDRESS = "swooosh.ddns.net";
     public StudentObservable student = new StudentObservable(null);
     public volatile ObservableList<NoticeBoard> noticeBoard = FXCollections.observableArrayList();
@@ -211,7 +211,9 @@ public class ConnectionHandler {
                     if (input instanceof Student) {
                         student.setStudent((Student) input);
                         updateSavedFiles();
+                        student.update();
                         System.out.println("Updated Student");
+                        System.out.println(student.getStudent().getClassAndResults().get(0).getStudentClass().getModuleName());
                     } else if (input instanceof List<?>) {
                         noticeBoard.clear();
                         noticeBoard.addAll((List<NoticeBoard>) input);

@@ -8,7 +8,7 @@ public class Student implements Serializable {
     private String studentNumber;
     private String campus;
     private String qualification;
-    private String FirstName;
+    private String firstName;
     private String lastName;
     private String email;
     private List<ClassAndResult> classAndResults;
@@ -17,7 +17,7 @@ public class Student implements Serializable {
         this.studentNumber = studentNumber;
         this.campus = campus;
         this.qualification = qualification;
-        FirstName = firstName;
+        firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.classAndResults = classAndResults;
@@ -36,7 +36,7 @@ public class Student implements Serializable {
     }
 
     public String getFirstName() {
-        return FirstName;
+        return firstName;
     }
 
     public String getLastName() {

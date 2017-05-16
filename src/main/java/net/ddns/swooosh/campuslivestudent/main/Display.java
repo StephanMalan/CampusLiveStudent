@@ -49,6 +49,7 @@ public class Display extends Application {
 
     public static final File APPLICATION_FOLDER = new File(System.getProperty("user.home") + "/AppData/Local/Swooosh/CampusLiveStudent");
     public static final File LOCAL_CACHE = new File(APPLICATION_FOLDER.getAbsolutePath() + "/Local Cache");
+    public static BooleanProperty enableAnimations = new SimpleBooleanProperty(true);
     private ConnectionHandler connectionHandler = new ConnectionHandler();
     private ObservableList<ClassAndResult> classAndResults = FXCollections.observableArrayList();
     private Stage stage;
@@ -63,7 +64,7 @@ public class Display extends Application {
     private ComboBox<ClassAndResult> classSelectComboBox;
     private ListView<StudentFileObservable> classFilesListView;
     private GridPane timetableGridPane;
-    private FlowPane resultsInnerPane;
+    private VBox resultsInnerPane;
     private FlowPane noticeboardInnerPane;
     private SideTabPane sideTabPane;
     private VBox studentPane;
@@ -380,11 +381,9 @@ public class Display extends Application {
         HBox headingPane = new HBox(headingText);
         headingPane.setAlignment(Pos.CENTER);
         headingPane.setPadding(new Insets(5, 150, 5, 150));
-        resultsInnerPane = new FlowPane();
+        resultsInnerPane = new VBox();
         resultsInnerPane.setAlignment(Pos.CENTER);
-        resultsInnerPane.setHgap(10);
-        resultsInnerPane.setVgap(10);
-        resultsInnerPane.setOrientation(Orientation.HORIZONTAL);
+        resultsInnerPane.setSpacing(15);
         resultsInnerPane.setPadding(new Insets(20));
         ScrollPane resultsScrollPane = new ScrollPane(resultsInnerPane);
         resultsScrollPane.getStyleClass().add("result-scroll-pane");
@@ -449,7 +448,9 @@ public class Display extends Application {
         Button logoutButton = new Button("Log Out");
         logoutButton.setMinSize(250, 50);
         logoutButton.getStyleClass().add("settingsButton");
-        VBox settingsButtonsPane = new VBox(changePasswordButton, aboutButton, logoutButton);
+        ToggleSlider toggleSlider = new ToggleSlider(true);
+        enableAnimations.bind(toggleSlider.enabled);
+        VBox settingsButtonsPane = new VBox(changePasswordButton, aboutButton, logoutButton, toggleSlider);
         settingsButtonsPane.setAlignment(Pos.TOP_CENTER);
         settingsButtonsPane.setSpacing(25);
         VBox settingsInnerPane = new VBox(settingsText, settingsButtonsPane);
@@ -487,7 +488,7 @@ public class Display extends Application {
         Label campusLabel = new Label("Durbanville");
         campusLabel.getStyleClass().add("top-pane-text");
         HBox campusPane = new HBox(campusLabel);
-        Label connectionTypeLabel = new Label(connectionHandler.getConnectionType());
+        Label connectionTypeLabel = new Label();
         connectionTypeLabel.getStyleClass().add("top-pane-text");
         HBox connectionTypePane = new HBox(connectionTypeLabel);
         connectionTypePane.setAlignment(Pos.CENTER);

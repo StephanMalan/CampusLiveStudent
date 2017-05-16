@@ -94,26 +94,44 @@ public class ResultComponent extends HBox {
 
     public void setExtended(Boolean extended) {
         if (extended) {
-            KeyValue keyValue = new KeyValue(firstPaneWidth, 650D);
-            KeyFrame keyFrame = new KeyFrame(Duration.millis(500), keyValue);
-            Timeline timeline = new Timeline(keyFrame);
-            timeline.play();
-        } else {
-            KeyValue keyValue;
-            switch (result.getResultName()) {
-                case "Due Performance":
-                    keyValue = new KeyValue(firstPaneWidth, 500D);
-                    break;
-                case "Final Mark":
-                    keyValue = new KeyValue(firstPaneWidth, 650D);
-                    break;
-                default:
-                    keyValue = new KeyValue(firstPaneWidth, 350D);
-                    break;
+            if (Display.enableAnimations.get()) {
+                KeyValue keyValue = new KeyValue(firstPaneWidth, 650D);
+                KeyFrame keyFrame = new KeyFrame(Duration.millis(500), keyValue);
+                Timeline timeline = new Timeline(keyFrame);
+                timeline.play();
+            } else {
+                firstPaneWidth.setValue(650D);
             }
-            KeyFrame keyFrame = new KeyFrame(Duration.millis(500), keyValue);
-            Timeline timeline = new Timeline(keyFrame);
-            timeline.play();
+        } else {
+            if (Display.enableAnimations.get()) {
+                KeyValue keyValue;
+                switch (result.getResultName()) {
+                    case "Due Performance":
+                        keyValue = new KeyValue(firstPaneWidth, 500D);
+                        break;
+                    case "Final Mark":
+                        keyValue = new KeyValue(firstPaneWidth, 650D);
+                        break;
+                    default:
+                        keyValue = new KeyValue(firstPaneWidth, 350D);
+                        break;
+                }
+                KeyFrame keyFrame = new KeyFrame(Duration.millis(500), keyValue);
+                Timeline timeline = new Timeline(keyFrame);
+                timeline.play();
+            } else {
+                switch (result.getResultName()) {
+                    case "Due Performance":
+                        firstPaneWidth.setValue(500D);
+                        break;
+                    case "Final Mark":
+                        firstPaneWidth.setValue(650D);
+                        break;
+                    default:
+                        firstPaneWidth.setValue(350D);
+                        break;
+                }
+            }
         }
     }
 

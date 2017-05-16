@@ -15,7 +15,7 @@
 }
 
 .root {
-    -fx-font-family: "Verdana";
+    -fx-font-family: "Georgia";
     -fx-font-size: 16px;
 }
 
@@ -55,6 +55,7 @@
     -fx-border-width: 1;
     -fx-border-color: white;
     -fx-font-weight: bold;
+    -fx-text-fill: white;
 }
 
 .settingsButton:hover {
@@ -148,6 +149,7 @@
     -fx-padding: 10;
     -fx-alignment: center-left;
     -fx-spacing: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0, 0, 3);
 }
 
 .top-pane-text {
@@ -209,13 +211,14 @@
 .heading-text {
     -fx-font-size: 32pt;
     -fx-font-weight: bold;
-    -fx-background-color: linear-gradient(#ffffff, #d3d3d3);
+    -fx-fill: #003057;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0.0, 0, 1);
 }
 
 .class-heading-text {
     -fx-font-size: 28pt;
     -fx-font-weight: bold;
+    -fx-fill: #003057;
     -fx-background-color: linear-gradient(#ffffff, #d3d3d3);
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0.0, 0, 1);
 }

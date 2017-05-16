@@ -22,13 +22,13 @@ import java.util.List;
 public class ConnectionHandler {
 
     public static final int PORT = 25760;
-    public static final String LOCAL_ADDRESS = "192.168.1.105";
+    public static final String LOCAL_ADDRESS = "127.0.0.1";
     public static final String INTERNET_ADDRESS = "swooosh.ddns.net";
     public StudentObservable student = new StudentObservable(null);
     public volatile ObservableList<NoticeBoard> noticeBoard = FXCollections.observableArrayList();
     public volatile ObservableList<String> outputQueue = FXCollections.observableArrayList();
     public volatile ObservableList<Object> inputQueue = FXCollections.observableArrayList();
-    public String connectionType = "(On Campus)";
+    public String connectionType = "On Campus";
     private Socket socket;
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
@@ -46,10 +46,8 @@ public class ConnectionHandler {
                 //TODO error message
                 System.exit(0);
             } else {
-                connectionType = "(Off Campus)";
+                connectionType = "Off Campus";
             }
-        } else {
-            connectionType = "(On Campus)";
         }
         new InputProcessor().start();
         new OutputProcessor().start();
@@ -58,7 +56,7 @@ public class ConnectionHandler {
     private Boolean connectLocal() {
         System.out.println("Trying to connect to local server...");
         try {
-            System.setProperty("javax.net.ssl.trustStore", "src/main/resources/campuslive.store");
+            System.setProperty("javax.net.ssl.trustStore", "campuslive.store");
             socket = SSLSocketFactory.getDefault().createSocket(LOCAL_ADDRESS, PORT);
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectInputStream = new ObjectInputStream(socket.getInputStream());

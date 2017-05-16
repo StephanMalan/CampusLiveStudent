@@ -42,12 +42,12 @@ public class ConnectionHandler {
     private void connect() {
         //FIXME load times are too long
         if (!connectLocal()) {
-            if (!connectInternet()) {
+            /*if (!connectInternet()) {
                 //TODO error message
                 System.exit(0);
             } else {
                 connectionType = "Off Campus";
-            }
+            }*/
         }
         new InputProcessor().start();
         new OutputProcessor().start();

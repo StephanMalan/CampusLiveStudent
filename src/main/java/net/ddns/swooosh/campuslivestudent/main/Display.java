@@ -5,13 +5,16 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -34,24 +37,22 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import models.*;
 
-import java.awt.*;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Scanner;
+import java.util.*;
 
 public class Display extends Application {
 
     public static final File APPLICATION_FOLDER = new File(System.getProperty("user.home") + "/AppData/Local/Swooosh/CampusLiveStudent");
     public static final File LOCAL_CACHE = new File(APPLICATION_FOLDER.getAbsolutePath() + "/Local Cache");
     public static BooleanProperty enableAnimations = new SimpleBooleanProperty(true);
+    public IntegerProperty currentTimeslot = new SimpleIntegerProperty();
     private ConnectionHandler connectionHandler = new ConnectionHandler();
-    private ObservableList<ClassAndResult> classAndResults = FXCollections.observableArrayList();
+    private ObservableList<ClassResultAttendance> classAndResults = FXCollections.observableArrayList();
     private Stage stage;
     private ImageView loginLogoImageView;
     private TextField studentNumberTextField;
@@ -61,11 +62,12 @@ public class Display extends Application {
     private Button loginButton;
     private VBox loginPane;
     private Text classText;
-    private ComboBox<ClassAndResult> classSelectComboBox;
+    private ComboBox<ClassResultAttendance> classSelectComboBox;
     private ListView<StudentFileObservable> classFilesListView;
     private GridPane timetableGridPane;
     private VBox resultsInnerPane;
     private FlowPane noticeboardInnerPane;
+    private TableView<ContactDetails> contactTableView;
     private SideTabPane sideTabPane;
     private VBox studentPane;
     private StackPane backgroundPane;
@@ -73,6 +75,11 @@ public class Display extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+
+        //Start timeslot updater
+        //<editor-fold desc="Timeslot Updater">
+        new TimeslotUpdater().start();
+        //</editor-fold>
 
         //Setup Stage
         //<editor-fold desc="Stage">
@@ -106,10 +113,11 @@ public class Display extends Application {
         loginLogoImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png")));
         loginLogoImageView.setFitHeight(200);
         loginLogoImageView.setFitWidth(200);
-        studentNumberTextField = new TextField();
+        studentNumberTextField = new TextField("DV2015-0073"); //TODO
         studentNumberTextField.setPromptText("Student Number");
         studentNumberTextField.getStyleClass().add("login-fields");
         passwordField = new PasswordField();
+        passwordField.setText("password"); //TODO
         passwordField.setPromptText("Password");
         passwordField.getStyleClass().add("login-fields");
         passwordField.getStyleClass().add("login-password");
@@ -199,12 +207,12 @@ public class Display extends Application {
         classHeadingPane.setSpacing(5);
         classHeadingPane.setAlignment(Pos.CENTER);
         Button classResultsButton = new Button("My Results");
-        classResultsButton.setOnAction(e -> new ResultDisplay(classSelectComboBox.getItems(), classSelectComboBox.getSelectionModel().getSelectedItem(), stage));
+        //classResultsButton.setOnAction(e -> new ResultDisplay(classSelectComboBox.getItems(), classSelectComboBox.getSelectionModel().getSelectedItem(), stage));
         classResultsButton.getStyleClass().add("class-button");
         classResultsButton.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0, 0, 0, 0.6), 5, 0.0, 2, 2));
         Button classContactLecturerButton = new Button("Contact Lecturer");
         classContactLecturerButton.setOnAction(e -> {
-            if (connectionHandler.isLecturerOnline(classSelectComboBox.getSelectionModel().getSelectedItem().getStudentClass().getLecturerNumber())) {
+            if (connectionHandler.isLecturerOnline(classSelectComboBox.getSelectionModel().getSelectedItem().getStudentClass().getLecturer().getLecturerID())) {
                 int contactMethod = UserNotification.showLecturerContactMethod();
                 if (contactMethod == UserNotification.EMAIL_OPTION) {
                     //TODO open email to lecturer
@@ -243,7 +251,7 @@ public class Display extends Application {
                     File openFile;
                     if ((openFile = new File(LOCAL_CACHE.getAbsolutePath() + "/" + file.getClassFile().getClassID() + "/" + file.getClassFile().getFileName())).exists() && openFile.length() == file.getClassFile().getFileLength()) {
                         try {
-                            Desktop.getDesktop().open(openFile);
+                            java.awt.Desktop.getDesktop().open(openFile);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -332,8 +340,6 @@ public class Display extends Application {
 
         //Setup timetable pane
         //<editor-fold desc="Timetable Pane">
-        Text timetableText = new Text("Timetable");
-        timetableText.getStyleClass().add("heading-text");
         timetableGridPane = new GridPane();
         ObservableList<ColumnConstraints> columnConstraints = FXCollections.observableArrayList();
         for (int i = 0; i < 14; i++) {
@@ -357,42 +363,24 @@ public class Display extends Application {
             rowConstraints.add(row);
         }
         timetableGridPane.getRowConstraints().addAll(rowConstraints);
-        timetableGridPane.setGridLinesVisible(true);
         timetableGridPane.getStyleClass().add("timetable-pane");
-        HBox timetableInnerPane = new HBox(timetableGridPane);
-        timetableInnerPane.getStyleClass().add("timetable-inner-pane");
-        HBox.setHgrow(timetableInnerPane, Priority.ALWAYS);
-        ScrollPane timetableScrollPane = new ScrollPane(timetableInnerPane);
-        timetableScrollPane.setFitToHeight(true);
-        timetableScrollPane.setFitToWidth(true);
-        timetableScrollPane.getStyleClass().add("timetable-scroll-pane");
-        VBox timetablePane = new VBox(timetableText, timetableScrollPane);
-        timetablePane.setAlignment(Pos.CENTER);
-        timetablePane.setSpacing(15);
-        timetablePane.setPadding(new Insets(15));
-        VBox.setVgrow(timetableScrollPane, Priority.ALWAYS);
+        timetableGridPane.setMaxSize(2000, 2000);
+        VBox timetablePane = new VBox(timetableGridPane);
+        VBox.setVgrow(timetableGridPane, Priority.ALWAYS);
         //</editor-fold>
 
         //Setup results pane
         //<editor-fold desc="Results Pane">
         VBox resultsPane = new VBox();
-        Text headingText = new Text("My Results");
-        headingText.getStyleClass().add("heading-text");
-        HBox headingPane = new HBox(headingText);
-        headingPane.setAlignment(Pos.CENTER);
-        headingPane.setPadding(new Insets(5, 150, 5, 150));
         resultsInnerPane = new VBox();
         resultsInnerPane.setAlignment(Pos.CENTER);
         resultsInnerPane.setSpacing(15);
         resultsInnerPane.setPadding(new Insets(20));
         ScrollPane resultsScrollPane = new ScrollPane(resultsInnerPane);
-        resultsScrollPane.getStyleClass().add("result-scroll-pane");
         VBox.setVgrow(resultsScrollPane, Priority.ALWAYS);
         resultsInnerPane.prefHeightProperty().bind(resultsScrollPane.heightProperty().subtract(46D));
         resultsScrollPane.setFitToWidth(true);
-        resultsPane.getChildren().addAll(headingPane, resultsScrollPane);
-        resultsPane.setSpacing(15);
-        resultsPane.setPadding(new Insets(15));
+        resultsPane.getChildren().addAll(resultsScrollPane);
         resultsPane.setAlignment(Pos.CENTER);
         //</editor-fold>
 
@@ -413,27 +401,32 @@ public class Display extends Application {
         VBox.setVgrow(noticeboardScrollPane, Priority.ALWAYS);
         //</editor-fold>
 
-        //Setup contact pane
-        //<editor-fold desc="Contact Pane">
-        Text contactText = new Text("Contact");
+        //Setup contact details pane
+        //<editor-fold desc="Contact Details Pane">
+        Text contactText = new Text("Contact Details");
         contactText.getStyleClass().add("heading-text");
-        TableView<ContactDetails> contactTableView = new TableView<>(FXCollections.observableList(connectionHandler.getContactDetails()));
+        contactTableView = new TableView<>();
         TableColumn<ContactDetails, String> nameTableColumn = new TableColumn<>("Name");
         nameTableColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        TableColumn<ContactDetails, String> telephoneTableColumn = new TableColumn<>("Telephone");
-        telephoneTableColumn.setCellValueFactory(new PropertyValueFactory<>("telephone"));
+        TableColumn<ContactDetails, String> positionTableColumn = new TableColumn<>("Position");
+        positionTableColumn.setCellValueFactory(new PropertyValueFactory<>("position"));
+        TableColumn<ContactDetails, String> telephoneTableColumn = new TableColumn<>("Contact Number");
+        telephoneTableColumn.setCellValueFactory(new PropertyValueFactory<>("contactNumber"));
         TableColumn<ContactDetails, String> emailTableColumn = new TableColumn<>("Email");
         emailTableColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
-        contactTableView.getColumns().addAll(nameTableColumn, telephoneTableColumn, emailTableColumn);
+        contactTableView.getColumns().addAll(nameTableColumn, positionTableColumn, telephoneTableColumn, emailTableColumn);
         VBox contactPane = new VBox(contactText, contactTableView);
         contactPane.setSpacing(15);
         contactPane.setPadding(new Insets(15, 150, 150, 150));
         contactPane.setAlignment(Pos.CENTER);
         VBox.setVgrow(contactTableView, Priority.ALWAYS);
+        populateContactDetails();
         //</editor-fold>
 
         //Setup important dates pane
+        //<editor-fold desc="Important Dates">
         VBox importantDatesPane = new VBox(new Label("Content"));
+        //</editor-fold>
 
         //Setup settings pane
         //<editor-fold desc="Settings Pane">
@@ -504,16 +497,22 @@ public class Display extends Application {
         //</editor-fold>
 
         //Setup background pane
+        //<editor-fold desc="Background Pane">
         backgroundPane = new StackPane();
         backgroundPane.getStyleClass().add("background-pane");
         backgroundPane.setEffect(new GaussianBlur(50));
+        //</editor-fold>
 
         //Setup student pane
+        //<editor-fold desc="Student Pane">
         studentPane = new VBox(topPane, sideTabPane);
         VBox.setVgrow(sideTabPane, Priority.ALWAYS);
+        //</editor-fold>
 
         //Setup content pane
+        //<editor-fold desc="Content Pane">
         contentPane = new StackPane(backgroundPane, loginPane);
+        //</editor-fold>
 
         //Setup student update listener
         //<editor-fold desc="Student Update Listener">
@@ -526,34 +525,35 @@ public class Display extends Application {
                         prevSelected = classSelectComboBox.getSelectionModel().getSelectedItem().getStudentClass().getModuleNumber();
                     }
                     classAndResults.clear();
-                    classAndResults.addAll(connectionHandler.student.getStudent().getClassAndResults());
+                    classAndResults.addAll(connectionHandler.student.getStudent().getClassResultAttendances());
                     resultsInnerPane.getChildren().clear();
-                    for (ClassAndResult result : classAndResults) {
+                    for (ClassResultAttendance result : classAndResults) {
+                        System.out.println(result.getResults().size());
                         resultsInnerPane.getChildren().add(new ResultPane(result));
                     }
                     if (prevSelected == null) {
                         SetTimeSlot:
                         if (!classSelectComboBox.getItems().isEmpty()) {
                             int dayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1;
-                            int currentTimeSlot = getCurrentTimeSlot();
-                            for (ClassAndResult car : classSelectComboBox.getItems()) {
+                            for (ClassResultAttendance car : classSelectComboBox.getItems()) {
                                 for (ClassTime ct : car.getStudentClass().getClassTimes()) {
-                                    if (ct.getDayOfWeek() == dayOfWeek && currentTimeSlot >= ct.getStartSlot() && currentTimeSlot <= ct.getEndSlot()) {
+                                    if (ct.getDayOfWeek() == dayOfWeek && currentTimeslot.get() >= ct.getStartSlot() && currentTimeslot.get() <= ct.getEndSlot()) {
                                         classSelectComboBox.getSelectionModel().select(car);
                                         break SetTimeSlot;
                                     }
                                 }
                             }
-                            classSelectComboBox.getSelectionModel().select(0);
+                            Platform.runLater(() -> classSelectComboBox.getSelectionModel().select(0));
                         }
                     } else {
-                        for (ClassAndResult car : classAndResults) {
+                        for (ClassResultAttendance car : classAndResults) {
                             if (car.getStudentClass().getModuleNumber().equals(prevSelected)) {
                                 classSelectComboBox.getSelectionModel().select(car);
                             }
                         }
                     }
                     populateTimetable();
+                    populateContactDetails();
                 }
             }
         });
@@ -561,29 +561,46 @@ public class Display extends Application {
 
         //Setup noticeboard update listener
         //<editor-fold desc="Noticeboard Update Listener">
-        connectionHandler.noticeBoard.addListener((InvalidationListener) e -> {
-            if (!connectionHandler.noticeBoard.isEmpty()) {
-                populateNoticeBoard();
-            }
+        connectionHandler.notices.addListener((InvalidationListener) e -> {
+            populateNoticeBoard();
+        });
+        connectionHandler.notifications.addListener((InvalidationListener) e -> {
+            System.out.println("lol");
+            populateNoticeBoard();
+        });
+        //</editor-fold>
+
+        //Setup contact details update listener
+        //<editor-fold desc="Contact Details Update Listener">
+        connectionHandler.contactDetails.addListener((InvalidationListener) e -> {
+            populateContactDetails();
         });
         //</editor-fold>
 
         //Setup stage close listener
+        //<editor-fold desc="Stage Close Listener">
         stage.setOnCloseRequest(e -> System.exit(0));
+        //</editor-fold>
 
         //Setup login pane animation
+        //<editor-fold desc="Login Pane animation">
         FadeTransition fadeTransition = new FadeTransition(Duration.millis(2000), loginPane);
         fadeTransition.setFromValue(0);
         fadeTransition.setToValue(1);
         fadeTransition.play();
+        //</editor-fold>
 
         //Setup scene
+        //<editor-fold desc="Scene">
         Scene scene = new Scene(contentPane);
         scene.getStylesheets().add(getClass().getClassLoader().getResource("CampusLiveStyle.css").toExternalForm());
+        //</editor-fold>
 
         //Set and display scene
+        //<editor-fold desc="Display Scene">
         stage.setScene(scene);
         stage.show();
+        //</editor-fold>
     }
 
     private String getFileNameWithoutExtension(String fileName) {
@@ -631,16 +648,8 @@ public class Display extends Application {
     }
 
     private void populateTimetable() {
-        java.util.List<ClassAndResult> classAndResults = classSelectComboBox.getItems();
-        ObservableList<Node> nodesToRemove = FXCollections.observableArrayList();
-        for (Node node : timetableGridPane.getChildren()) {
-            if (node instanceof Label) {
-                nodesToRemove.add(node);
-            }
-        }
-        for (Node node : nodesToRemove) {
-            timetableGridPane.getChildren().remove(node);
-        }
+        List<ClassResultAttendance> classAndResults = classSelectComboBox.getItems();
+        timetableGridPane.getChildren().clear();
         String[] weekdays = {"Mo", "Tu", "We", "Th", "Fr"};
         for (int i = 0; i < 5; i++) {
             Label label = new Label(weekdays[i]);
@@ -654,29 +663,30 @@ public class Display extends Application {
             label.setAlignment(Pos.CENTER);
             timetableGridPane.add(label, i + 1, 0);
         }
-        for (ClassAndResult cr : classAndResults) {
+        int classNumber = 0;
+        for (ClassResultAttendance cr : classAndResults) {
             String moduleName = cr.getStudentClass().getModuleName();
-            String lecturerInitials = cr.getStudentClass().getLecturerFirstName().charAt(0) + "" + cr.getStudentClass().getLecturerLastName().charAt(0);
+            String lecturerInitials = cr.getStudentClass().getLecturer().getFirstName().charAt(0) + "" + cr.getStudentClass().getLecturer().getLastName().charAt(0);
             for (ClassTime ct : cr.getStudentClass().getClassTimes()) {
                 for (int i = ct.getStartSlot(); i <= ct.getEndSlot(); i++) {
-                    Label label = new Label(moduleName + "\n\n" + lecturerInitials + " (" + ct.getRoomNumber() + ")");
-                    label.getStyleClass().add("timetable-text");
-                    label.setAlignment(Pos.TOP_CENTER);
-                    label.setOnMouseClicked(e -> {
-                        classSelectComboBox.getSelectionModel().select(cr);
-                        sideTabPane.select(0);
+                    TimetableBlock timetableBlock = new TimetableBlock(moduleName + "\n\n" + lecturerInitials + " (" + ct.getRoomNumber() + ")", classNumber);
+                    timetableBlock.setOnMouseClicked(e -> {
+                        Platform.runLater(() -> {
+                            classSelectComboBox.getSelectionModel().select(cr);
+                            sideTabPane.select(0);
+                        });
                     });
-                    timetableGridPane.add(label, i, ct.getDayOfWeek());
+                    timetableGridPane.add(timetableBlock, i, ct.getDayOfWeek());
                 }
             }
+            classNumber++;
         }
         timetableGridPane.setGridLinesVisible(true);
     }
 
     private void populateNoticeBoard() {
-        ObservableList<NoticeBoard> noticeBoards = connectionHandler.noticeBoard;
         ObservableList<StackPane> noticePanes = FXCollections.observableArrayList();
-        for (NoticeBoard nb : noticeBoards) {
+        for (Notification nb : connectionHandler.notifications) {
             ImageView pushpinImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Pushpin.png")));
             pushpinImageView.setFitHeight(64);
             pushpinImageView.setFitWidth(64);
@@ -712,7 +722,60 @@ public class Display extends Application {
             FlowPane.setMargin(shadowPane, new Insets(5));
             noticePanes.add(shadowPane);
         }
+        for (Notice nb : connectionHandler.notices) {
+            ImageView pushpinImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Pushpin.png")));
+            pushpinImageView.setFitHeight(64);
+            pushpinImageView.setFitWidth(64);
+            HBox pushpinPane = new HBox(pushpinImageView);
+            pushpinPane.setAlignment(Pos.CENTER);
+            pushpinPane.setPadding(new Insets(-15, 0, -40, 0));
+            Text headingLabel = new Text(nb.getHeading());
+            headingLabel.setWrappingWidth(450);
+            headingLabel.getStyleClass().add("noteHeading");
+            Text descriptionLabel = new Text(nb.getDescription());
+            descriptionLabel.setWrappingWidth(450);
+            descriptionLabel.getStyleClass().add("noteDescription");
+            VBox noticePane = new VBox(pushpinPane, headingLabel, descriptionLabel);
+            VBox.setVgrow(descriptionLabel, Priority.ALWAYS);
+            noticePane.setAlignment(Pos.TOP_LEFT);
+            noticePane.setPadding(new Insets(0, 15, 15, 15));
+            noticePane.setSpacing(15);
+            int randomInt = (int) (Math.random() * 4);
+            if (randomInt == 3) {
+                noticePane.setStyle("-fx-background-color: #8ae1e3");
+            } else if (randomInt == 2) {
+                noticePane.setStyle("-fx-background-color: #cf90e3");
+            } else if (randomInt == 1) {
+                noticePane.setStyle("-fx-background-color: #82e367");
+            } else {
+                noticePane.setStyle("-fx-background-color: #dce334");
+            }
+            noticePane.setMinWidth(500);
+            noticePane.setMaxWidth(500);
+            StackPane shadowPane = new StackPane(noticePane);
+            shadowPane.getStyleClass().add("noteShadow");
+            shadowPane.setRotate((Math.random() * 3.0) - 1.5);
+            FlowPane.setMargin(shadowPane, new Insets(5));
+            noticePanes.add(shadowPane);
+        }
+        noticeboardInnerPane.getChildren().clear();
         noticeboardInnerPane.getChildren().addAll(noticePanes);
+    }
+
+    private void populateContactDetails() {
+        ObservableList<ContactDetails> lecturerContactDetails = FXCollections.observableArrayList();
+        for (ClassResultAttendance cra : classAndResults) {
+            Lecturer lecturer = cra.getStudentClass().getLecturer();
+            ContactDetails newContactDetails = new ContactDetails(lecturer.getFirstName() + "" + lecturer.getLastName(), "Lecturer", lecturer.getContactNumber(), lecturer.getEmail());
+            if (!lecturerContactDetails.contains(newContactDetails)) {
+                System.out.println("test");
+                lecturerContactDetails.add(newContactDetails);
+            }
+        }
+        ObservableList<ContactDetails> contactDetails = FXCollections.observableArrayList();
+        contactDetails.addAll(connectionHandler.contactDetails);
+        contactDetails.addAll(lecturerContactDetails);
+        contactTableView.setItems(contactDetails);
     }
 
     private String getBuild() {
@@ -723,6 +786,34 @@ public class Display extends Application {
             ex.printStackTrace();
         }
         return "(Build N/A)";
+    }
+
+    public class TimeslotUpdater extends Thread {
+        @Override
+        public void run() {
+            while (true) {
+                currentTimeslot.set(getCurrentTimeSlot());
+                int dayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1;
+                Platform.runLater(() -> {
+                    for (Node node : timetableGridPane.getChildren()) {
+                        if (node != null && !(node instanceof Group) && GridPane.getColumnIndex(node) == currentTimeslot.get() && dayOfWeek > 0 && dayOfWeek < 6 && GridPane.getRowIndex(node) == dayOfWeek) {
+                            if (node != null && node instanceof TimetableBlock) {
+                                ((TimetableBlock) node).setSelected(true);
+                            }
+                        } else {
+                            if (node != null && node instanceof TimetableBlock) {
+                                ((TimetableBlock) node).setSelected(false);
+                            }
+                        }
+                    }
+                });
+                try {
+                    Thread.sleep(5000);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
     }
 
     public static void main(String[] args) {

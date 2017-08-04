@@ -25,7 +25,10 @@ public class ConnectionHandler {
     public static final String LOCAL_ADDRESS = "127.0.0.1";
     public static final String INTERNET_ADDRESS = "swooosh.ddns.net";
     public StudentObservable student = new StudentObservable(null);
-    public volatile ObservableList<NoticeBoard> noticeBoard = FXCollections.observableArrayList();
+    public volatile ObservableList<Notice> notices = FXCollections.observableArrayList();
+    public volatile ObservableList<Notification> notifications = FXCollections.observableArrayList();
+    public volatile ObservableList<ContactDetails> contactDetails = FXCollections.observableArrayList();
+    public volatile ObservableList<ImportantDate> importantDates = FXCollections.observableArrayList();
     public volatile ObservableList<String> outputQueue = FXCollections.observableArrayList();
     public volatile ObservableList<Object> inputQueue = FXCollections.observableArrayList();
     public String connectionType = "On Campus";
@@ -42,12 +45,12 @@ public class ConnectionHandler {
     private void connect() {
         //FIXME load times are too long
         if (!connectLocal()) {
-            /*if (!connectInternet()) {
+            if (!connectInternet()) {
                 //TODO error message
                 System.exit(0);
             } else {
                 connectionType = "Off Campus";
-            }*/
+            }
         }
         new InputProcessor().start();
         new OutputProcessor().start();
@@ -143,7 +146,7 @@ public class ConnectionHandler {
 
     public void updateSavedFiles() {
         Boolean updated = false;
-        for (ClassAndResult car : student.getStudent().getClassAndResults()) {
+        for (ClassResultAttendance car : student.getStudent().getClassResultAttendances()) {
             for (ClassFile cf : car.getStudentClass().getFiles()) {
                 File f;
                 if ((f = new File(Display.LOCAL_CACHE + "/" + cf.getClassID() + "/" + cf.getFileName())).exists() && f.length() == cf.getFileLength()) {
@@ -186,16 +189,7 @@ public class ConnectionHandler {
     }
 
     public List<ContactDetails> getContactDetails() {
-        return Arrays.asList(new ContactDetails("Director", "023 626 2576", "info@cti.ac.za"),
-                new ContactDetails("Network Technician", "023 626 2576", "info@cti.ac.za"),
-                new ContactDetails("Jo-ann", "023 626 2576", "info@cti.ac.za"),
-                new ContactDetails("Coralie", "023 626 2576", "info@cti.ac.za"),
-                new ContactDetails("Tem", "023 626 2576", "info@cti.ac.za"),
-                new ContactDetails("Stephen", "023 626 2576", "info@cti.ac.za"),
-                new ContactDetails("Henk", "023 626 2576", "info@cti.ac.za"),
-                new ContactDetails("Nyarai", "023 626 2576", "info@cti.ac.za"),
-                new ContactDetails("Emanuel", "023 626 2576", "info@cti.ac.za")
-        );
+        return contactDetails;
     }
 
     public Boolean studentInitialized() {
@@ -212,11 +206,25 @@ public class ConnectionHandler {
                         updateSavedFiles();
                         student.update();
                         System.out.println("Updated Student");
-                        System.out.println(student.getStudent().getClassAndResults().get(0).getStudentClass().getModuleName());
                     } else if (input instanceof List<?>) {
-                        noticeBoard.clear();
-                        noticeBoard.addAll((List<NoticeBoard>) input);
-                        System.out.println("Updated Notice Board");
+                        List list = (List) input;
+                        if (!list.isEmpty() && list.get(0) instanceof Notice) {
+                            notices.clear();
+                            notices.addAll(list);
+                            System.out.println("Updated Notices");
+                        } else if (!list.isEmpty() && list.get(0) instanceof Notification) {
+                            notifications.clear();
+                            notifications.addAll(list);
+                            System.out.println("Updated Notifications (" + notifications.size() + ")");
+                        } else if (!list.isEmpty() && list.get(0) instanceof ContactDetails) {
+                            contactDetails.clear();
+                            contactDetails.addAll(list);
+                            System.out.println("Updated Contact Details");
+                        } else if (!list.isEmpty() && list.get(0) instanceof ImportantDate) {
+                            importantDates.clear();
+                            importantDates.addAll(list);
+                            System.out.println("Updated Important Dates");
+                        }
                     } else {
                         inputQueue.add(input);
                     }

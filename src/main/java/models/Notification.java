@@ -2,14 +2,16 @@ package models;
 
 import java.io.Serializable;
 
-public class NoticeBoard implements Serializable {
+public class Notification implements Serializable{
 
     private String heading;
     private String description;
+    private String tag;
 
-    public NoticeBoard(String heading, String description) {
+    public Notification(String heading, String description, String tag) {
         this.heading = heading;
         this.description = description;
+        this.tag = tag;
     }
 
     public String getHeading() {
@@ -19,4 +21,9 @@ public class NoticeBoard implements Serializable {
     public String getDescription() {
         return description;
     }
+
+    public String getTag() {
+        return tag;
+    }
+
 }

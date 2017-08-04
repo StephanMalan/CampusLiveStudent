@@ -2,7 +2,7 @@ package models;
 
 import java.io.Serializable;
 
-public class ClassFile implements Serializable {
+public class ClassFile implements Serializable{
 
     private int classID;
     private String fileName;
@@ -10,8 +10,7 @@ public class ClassFile implements Serializable {
     private int value;
     private Object fileDownloader;
 
-    public ClassFile(int classID, String fileName, int fileLength
-    ) {
+    public ClassFile(int classID, String fileName, int fileLength) {
         this.classID = classID;
         this.fileName = fileName;
         this.fileLength = fileLength;

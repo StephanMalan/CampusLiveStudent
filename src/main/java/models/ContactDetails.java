@@ -1,14 +1,18 @@
 package models;
 
-public class ContactDetails {
+import java.io.Serializable;
+
+public class ContactDetails implements Serializable {
 
     private String name;
-    private String telephone;
+    private String position;
+    private String contactNumber;
     private String email;
 
-    public ContactDetails(String name, String telephone, String email) {
+    public ContactDetails(String name, String position, String contactNumber, String email) {
         this.name = name;
-        this.telephone = telephone;
+        this.position = position;
+        this.contactNumber = contactNumber;
         this.email = email;
     }
 
@@ -16,8 +20,12 @@ public class ContactDetails {
         return name;
     }
 
-    public String getTelephone() {
-        return telephone;
+    public String getPosition() {
+        return position;
+    }
+
+    public String getContactNumber() {
+        return contactNumber;
     }
 
     public String getEmail() {

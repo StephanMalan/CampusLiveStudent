@@ -5,15 +5,15 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
-import models.ClassAndResult;
+import models.ClassResultAttendance;
 import models.Result;
 
 public class ResultPane extends VBox {
 
-    private ClassAndResult classAndResult;
+    private ClassResultAttendance classAndResult;
     private Boolean extended;
 
-    public ResultPane(ClassAndResult classAndResult) {
+    public ResultPane(ClassResultAttendance classAndResult) {
         this.classAndResult = classAndResult;
         extended = true;
         init();
@@ -57,8 +57,10 @@ public class ResultPane extends VBox {
             }
         }
 
-        Result dpResult = new Result("Due Performance", dp, 100D, 0D, 0D);
-        getChildren().add(new ResultComponent(dpResult));
+        if (dp != 0D) {
+            Result dpResult = new Result("Due Performance", dp, 100D, 0D, 0D);
+            getChildren().add(new ResultComponent(dpResult));
+        }
 
 
         for (Result result : classAndResult.getResults()) {

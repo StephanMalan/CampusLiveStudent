@@ -2,7 +2,7 @@ package models;
 
 import java.io.Serializable;
 
-public class FilePart implements Serializable {
+public class FilePart implements Serializable{
 
     private byte[] fileBytes;
     private int classID;

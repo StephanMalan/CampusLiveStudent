@@ -160,6 +160,22 @@ public class ConnectionHandler {
 
                 }
             }
+            try {
+                File classFolder = new File(Display.LOCAL_CACHE + "/" + car.getStudentClass().getClassID());
+                for (File file : classFolder.listFiles()) {
+                    Boolean found = false;
+                    for (ClassFile cf : car.getStudentClass().getFiles()) {
+                        if (cf.getFileName().equals(file.getName()) && cf.getFileLength() == file.length()) {
+                            found = true;
+                        }
+                    }
+                    if (!found) {
+                        Files.delete(file.toPath());
+                        System.out.println("Deleted file: " + file.getName());
+                    }
+                }
+            } catch (Exception ex) {
+            }
         }
         if (updated) {
             Platform.runLater(() -> student.update());

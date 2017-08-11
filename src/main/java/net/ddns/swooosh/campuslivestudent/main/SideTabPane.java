@@ -1,11 +1,13 @@
 package net.ddns.swooosh.campuslivestudent.main;
 
+import com.jfoenix.controls.JFXPopup;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
 
 public class SideTabPane extends HBox {
 
@@ -15,6 +17,8 @@ public class SideTabPane extends HBox {
     private Insets insets;
     private VBox tabHeadersPane;
     private Boolean extended;
+    private CustomDialogSkin settingsDialog;
+    private Window parent;
 
     public SideTabPane(SideTab... tabs) {
         this.tabs = tabs;
@@ -24,23 +28,39 @@ public class SideTabPane extends HBox {
         init();
     }
 
+    public void setSettingsDialog(CustomDialogSkin settingsDialog) {
+        this.settingsDialog = settingsDialog;
+    }
+
+    public void setParent(Window parent) {
+        this.parent = parent;
+    }
+
     private void init() {
         tabHeadersPane = new VBox();
         selectedSideTab = tabs[0];
         for (int i = 0; i < tabs.length; i++) {
-            if (i == tabs.length - 1) {
+            if (i == tabs.length - 2) {
                 Pane spacingPane = new Pane();
                 tabHeadersPane.getChildren().add(spacingPane);
                 VBox.setVgrow(spacingPane, Priority.ALWAYS);
             }
             SideTab tab = tabs[i];
             tab.setOnMouseClicked(evt -> {
-                selectedSideTab = (SideTab) evt.getSource();
-                updateSelected();
+                if (tab.getText().equals("Settings")) {
+                    new SettingsDialog(parent).showDialog();
+                } else if (tab.getText().equals("Sign Out")) {
+                    //TODO logout dialog
+                    System.exit(0);
+                } else {
+                    selectedSideTab = (SideTab) evt.getSource();
+                    updateSelected();
+                }
             });
             tabHeadersPane.getChildren().add(tab);
         }
         tabHeadersPane.setAlignment(Pos.CENTER);
+        tabHeadersPane.setSpacing(5);
         tabHeadersPane.getStyleClass().add("tab-header-pane");
         getChildren().add(0, tabHeadersPane);
         updateSelected();
@@ -48,11 +68,7 @@ public class SideTabPane extends HBox {
 
     private void updateSelected() {
         for (SideTab sideTab : tabs) {
-            if (sideTab == selectedSideTab) {
-                sideTab.getStyleClass().add("selected-side-tab");
-            } else {
-                sideTab.getStyleClass().removeAll("selected-side-tab");
-            }
+            sideTab.setSelected(sideTab == selectedSideTab);
         }
         if (getChildren().size() == 1) {
             getChildren().add(1, selectedSideTab.getContent());

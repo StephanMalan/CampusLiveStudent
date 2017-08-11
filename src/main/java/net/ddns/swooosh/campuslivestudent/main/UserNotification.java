@@ -1,18 +1,27 @@
 package net.ddns.swooosh.campuslivestudent.main;
 
+import com.jfoenix.controls.*;
+import javafx.scene.CacheHint;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+import models.ClassFile;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.Optional;
 
 public class UserNotification {
 
-    public static final int EMAIL_OPTION = 1;
-    public static final int DIRECT_OPTION = 2;
 
     public static void showErrorMessage(String title, String header, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -22,12 +31,8 @@ public class UserNotification {
         alert.showAndWait();
     }
 
-    public static void showMessage(String title, String header, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setContentText(message);
-        alert.setHeaderText(header);
-        alert.showAndWait();
+    public static void showMessage(Window parent, String heading, String message) {
+        new CustomDialog(parent, heading, message, new JFXButton("Ok"));
     }
 
     public static String getText(String title, String message) {
@@ -41,23 +46,19 @@ public class UserNotification {
         return null;
     }
 
-    public static int showLecturerContactMethod() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Contact lecturer");
-        alert.setHeaderText("Do you want to contact lecturer by email or directly?");
-        ((Stage) alert.getDialogPane().getScene().getWindow()).getIcons().addAll(new Image(UserNotification.class.getClassLoader().getResourceAsStream("CLLogo.png")));
-        ButtonType emailButtonType = new ButtonType("Email");
-        ButtonType directButtonType = new ButtonType("Direct");
-        alert.getButtonTypes().clear();
-        alert.getButtonTypes().addAll(emailButtonType, directButtonType, ButtonType.CLOSE);
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == emailButtonType) {
-            return 1;
-        } else if (result.isPresent() && result.get() == directButtonType) {
-            return 2;
-        } else {
-            return 0;
-        }
+    public static void showFileDetails(Window parent, ClassFile classFile) {
+        CustomDialog customDialog = new CustomDialog(parent, Display.getFileNameWithoutExtension(classFile.getFileName()), "Extension: " + Display.getFileExtension(classFile.getFileName()) + "\nSize          : " + (classFile.getFileLength() / 1024) + "kB", new JFXButton("Ok"));
+        customDialog.showDialog();
+    }
+
+    public static Boolean confirmationDialog(Window parent, String heading, String body) {
+        CustomDialog customDialog = new CustomDialog(parent, heading, body, new JFXButton("Yes"), new JFXButton("Cancel"));
+        return customDialog.showDialog() == 1;
+    }
+
+    public static int showLecturerContactMethod(Window parent) {
+        CustomDialog customDialog = new CustomDialog(parent, "Contact Lecturer", "Do you want to contact lecturer by email or directly?", new JFXButton("Email"), new JFXButton("Direct Message"), new JFXButton("Cancel"));
+        return customDialog.showDialog();
     }
 
 }

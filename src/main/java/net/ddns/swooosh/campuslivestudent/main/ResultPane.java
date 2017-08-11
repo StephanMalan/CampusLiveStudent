@@ -1,9 +1,11 @@
 package net.ddns.swooosh.campuslivestudent.main;
 
+import com.jfoenix.controls.JFXButton;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import models.ClassResultAttendance;
 import models.Result;
@@ -25,8 +27,10 @@ public class ResultPane extends VBox {
         HBox.setHgrow(headingText, Priority.ALWAYS);
         HBox headingTextPane = new HBox(headingText);
         headingTextPane.setAlignment(Pos.CENTER);
-        Button actionButton = new Button("More");
-        actionButton.getStyleClass().add("result-button");
+        JFXButton actionButton = new JFXButton("More");
+        actionButton.setRipplerFill(Color.WHITE);
+        actionButton.setStyle("-fx-text-fill: white;");
+        actionButton.setFocusTraversable(false);
         actionButton.setOnAction(e -> {
             if (actionButton.getText().equals("More")) {
                 actionButton.setText("Less");
@@ -70,7 +74,12 @@ public class ResultPane extends VBox {
             }
         }
 
-        Result fmResult = new Result("Final Mark", fm, 100D, 0D, 0D);
+        Result fmResult;
+        if (classAndResult.getResults().isEmpty()) {
+            fmResult = new Result("Final Mark", -1D, 100D, 0D, 0D);
+        } else {
+            fmResult = new Result("Final Mark", fm, 100D, 0D, 0D);
+        }
         getChildren().add(new ResultComponent(fmResult));
         setMaxWidth(800);
         setMinWidth(800);

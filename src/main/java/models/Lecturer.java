@@ -1,7 +1,11 @@
 package models;
 
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+
+import javax.imageio.ImageIO;
+import java.io.ByteArrayInputStream;
 import java.io.Serializable;
-import java.util.List;
 
 public class Lecturer implements Serializable{
 
@@ -10,13 +14,15 @@ public class Lecturer implements Serializable{
     private String lastName;
     private String contactNumber;
     private String email;
+    private byte[] lecturerImage;
 
-    public Lecturer(String lecturerID, String firstName, String lastName, String contactNumber, String email) {
+    public Lecturer(String lecturerID, String firstName, String lastName, String contactNumber, String email, byte[] lecturerImage) {
         this.lecturerID = lecturerID;
         this.firstName = firstName;
         this.lastName = lastName;
         this.contactNumber = contactNumber;
         this.email = email;
+        this.lecturerImage = lecturerImage;
     }
 
     public String getLecturerID() {
@@ -39,4 +45,12 @@ public class Lecturer implements Serializable{
         return email;
     }
 
+    public Image getLecturerImage() {
+        try {
+            return SwingFXUtils.toFXImage(ImageIO.read(new ByteArrayInputStream(lecturerImage)), null);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
 }

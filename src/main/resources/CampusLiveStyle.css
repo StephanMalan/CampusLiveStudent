@@ -14,8 +14,12 @@
     src: url("PlayfairDisplay.ttf");
 }
 
+@font-face {
+    src: url("Roboto-Regular.ttf");
+}
+
 .root {
-    -fx-font-family: "Georgia";
+    -fx-font-family: "Roboto";
     -fx-font-size: 16px;
 }
 
@@ -51,6 +55,8 @@
     -fx-background-color: rgba(72, 192, 225, 0.5);
     -fx-background-radius: 15;
     -fx-border-radius: 15;
+    -fx-min-width: 250;
+    -fx-min-height: 50;
     -fx-background-insets: 0;
     -fx-border-width: 1;
     -fx-border-color: white;
@@ -118,13 +124,11 @@
 /*new display*/
 
 .side-tab {
-    -fx-border-width: 0 2 0 0;
+    -fx-border-width: 0 5 0 0;
     -fx-border-color: #007FA3;
-    -fx-border-insets: 0 5 0 0;
-    -fx-background-insets: 0 5 0 0;
 }
 
-.side-tab:hover {
+.side-tab-hovered {
     -fx-background-color: rgba(0, 48, 87, 0.5);
 }
 
@@ -153,7 +157,7 @@
 }
 
 .top-pane-text {
-    -fx-text-fill: #D2DB0E;
+    -fx-text-fill: white;
     -fx-font-size: 18
 }
 
@@ -198,6 +202,7 @@
     -fx-max-height: 40;
     -fx-min-height: 40;
     -fx-padding: 2;
+    -jfx-button-type: RAISED;
 }
 
 .login-tooltip {
@@ -293,7 +298,7 @@
 }
 
 .timetable-pane {
-    -fx-background-color: rgba(66, 135, 167, .7);
+    -fx-background-color: /*rgba(66, 135, 167, .7)*/#D4EAE4;
     -fx-border-color: black;
 }
 
@@ -340,7 +345,7 @@
 .result-heading-text {
     -fx-fill: white;
     -fx-font-weight: bold;
-    -fx-font-size: 24;
+    -fx-font-size: 28;
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0, 2, 2);
 }
 
@@ -364,4 +369,31 @@
     -fx-font-weight: bold;
     -fx-min-width: 75;
     -fx-min-height: 30;
+}
+
+.jfx-hamburger StackPane {
+    -fx-background-color: #D2DB0E;
+}
+
+.custom-dialog-heading {
+    -fx-font-family: "Roboto";
+    -fx-font-size: 22;
+}
+
+.custom-dialog-body {
+    -fx-font-family: "Roboto";
+    -fx-font-size: 16;
+}
+
+.lecturer-text-pane {
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+    -fx-border-color: black;
+    -fx-border-radius: 15;
+    -fx-border-width: 2;
+    -fx-background-color: #007FA3;
+}
+
+.lecturer-text-pane :hover {
+    -fx-background-color: #003057;
 }

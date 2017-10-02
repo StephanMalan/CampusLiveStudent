@@ -66,10 +66,36 @@ public class ResultPane extends VBox {
             getChildren().add(new ResultComponent(dpResult));
         }
 
+        //Check supplementary results
+        //Check which is higher
+
+        double examMark = 0;
+        double suppExamMark = 0;
+
+        for (Result result : classAndResult.getResults()) {
+            if (result.getResultName().equals("Initial Exam")) {
+                examMark = result.getResult();
+            } else if (result.getResultName().equals("Supplementary Exam")) {
+                suppExamMark = result.getResult();
+            }
+        }
+
+        //TODO currently only works if result is out of 100
 
         for (Result result : classAndResult.getResults()) {
             if (result.getDpWeight() == 0D) {
-                fm += (result.getResult() * result.getFinalWeight() / 100D);
+                if (result.getResultName().equals("Initial Exam")) {
+                    if (examMark >= suppExamMark) {
+                        fm += (result.getResult() * result.getFinalWeight() / 100D);
+                    }
+                } else if (result.getResultName().equals("Supplementary Exam")) {
+                    if (suppExamMark > examMark) {
+                        fm += (result.getResult() * result.getFinalWeight() / 100D);
+                    }
+                } else {
+                    fm += (result.getResult() * result.getFinalWeight() / 100D);
+                }
+
                 getChildren().add(new ResultComponent(result));
             }
         }

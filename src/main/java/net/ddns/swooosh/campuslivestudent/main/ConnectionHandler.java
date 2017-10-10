@@ -59,8 +59,7 @@ public class ConnectionHandler {
     private Boolean connectLocal() {
         System.out.println("Trying to connect to local server...");
         try {
-            System.setProperty("javax.net.ssl.trustStore", getClass().getClassLoader().getResource("campuslive.store").toURI().getPath());
-            System.out.println(getClass().getClassLoader().getResource("campuslive.store").toURI().getPath());
+            System.setProperty("javax.net.ssl.trustStore", Display.APPLICATION_FOLDER + "/campuslive.store");
             socket = SSLSocketFactory.getDefault().createSocket(LOCAL_ADDRESS, PORT);
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectInputStream = new ObjectInputStream(socket.getInputStream());

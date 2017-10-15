@@ -9,7 +9,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
-import models.Result;
+import models.all.Result;
 
 public class ResultComponent extends HBox {
 

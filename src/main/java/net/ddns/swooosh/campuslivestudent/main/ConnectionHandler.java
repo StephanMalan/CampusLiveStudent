@@ -7,7 +7,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import models.*;
+import models.all.*;
 
 import javax.net.ssl.SSLSocketFactory;
 import java.io.File;
@@ -16,7 +16,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.List;
 
 public class ConnectionHandler {
@@ -46,7 +45,8 @@ public class ConnectionHandler {
         //FIXME load times are too long
         if (!connectLocal()) {
             if (!connectInternet()) {
-                //TODO error message
+                UserNotification.showErrorMessage("Connection Error", "Failed to connect to CampusLive Servers!\nPlease check your network connection and try again!");
+                System.out.println("Exiting..");
                 System.exit(0);
             } else {
                 connectionType = "Off Campus";

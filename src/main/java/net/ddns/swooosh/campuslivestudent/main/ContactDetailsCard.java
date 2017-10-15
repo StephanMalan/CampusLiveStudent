@@ -10,7 +10,7 @@ import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.Window;
-import models.ContactDetails;
+import models.all.ContactDetails;
 
 public class ContactDetailsCard extends HBox {
 

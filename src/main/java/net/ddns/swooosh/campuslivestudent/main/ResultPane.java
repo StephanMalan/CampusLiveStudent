@@ -3,12 +3,11 @@ package net.ddns.swooosh.campuslivestudent.main;
 import com.jfoenix.controls.JFXButton;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
-import models.ClassResultAttendance;
-import models.Result;
+import models.all.ClassResultAttendance;
+import models.all.Result;
 
 public class ResultPane extends VBox {
 

@@ -6,14 +6,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
-import models.Lecturer;
+import models.student.ClassLecturer;
 
 public class LecturerBadge extends HBox {
 
     private Circle lecturerPicture;
     private Text lecturerText;
     private HBox lecturerTextPane;
-    private Lecturer lecturer;
+    private ClassLecturer classLecturer;
 
     public LecturerBadge() {
         lecturerPicture = new Circle(30);
@@ -27,7 +27,7 @@ public class LecturerBadge extends HBox {
         lecturerTextPane.setMaxSize(200, 30);
         lecturerTextPane.setMinSize(200, 30);
         lecturerTextPane.setAlignment(Pos.CENTER);
-        lecturerTextPane.getStyleClass().add("lecturer-text-pane");
+        lecturerTextPane.getStyleClass().add("classLecturer-text-pane");
         getChildren().addAll(lecturerTextPane, lecturerPicture);
         setSpacing(-245);
         setAlignment(Pos.CENTER);
@@ -36,10 +36,10 @@ public class LecturerBadge extends HBox {
         setPickOnBounds(false);
     }
 
-    public void setLecturer(Lecturer lecturer) {
-        this.lecturer = lecturer;
-        lecturerPicture.setFill(new ImagePattern(lecturer.getLecturerImage()));
-        lecturerText.setText(lecturer.getFirstName() + " " + lecturer.getLastName());
+    public void setClassLecturer(ClassLecturer classLecturer) {
+        this.classLecturer = classLecturer;
+        lecturerPicture.setFill(new ImagePattern(classLecturer.getLecturerImage()));
+        lecturerText.setText(classLecturer.getFirstName() + " " + classLecturer.getLastName());
     }
 
     public String getLecturerName() {
@@ -47,6 +47,6 @@ public class LecturerBadge extends HBox {
     }
 
     public String getLecturerEmail() {
-        return lecturer.getEmail();
+        return classLecturer.getEmail();
     }
 }

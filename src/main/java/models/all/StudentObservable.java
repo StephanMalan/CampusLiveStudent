@@ -1,4 +1,4 @@
-package models;
+package models.all;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;

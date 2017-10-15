@@ -3,7 +3,6 @@ package net.ddns.swooosh.campuslivestudent.main;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXHamburger;
 import com.jfoenix.controls.JFXMasonryPane;
-import com.jfoenix.controls.JFXToggleButton;
 import com.jfoenix.svg.SVGGlyph;
 import com.jfoenix.transitions.hamburger.HamburgerBackArrowBasicTransition;
 import javafx.animation.FadeTransition;
@@ -27,16 +26,14 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.ImagePattern;
-import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import models.*;
+import models.all.*;
+import models.student.ClassLecturer;
 
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -201,7 +198,7 @@ public class Display extends Application {
         classSelectComboBox.getSelectionModel().selectedItemProperty().addListener(e -> {
             if (!classSelectComboBox.getSelectionModel().isEmpty()) {
                 classText.setText(classSelectComboBox.getSelectionModel().getSelectedItem().toString());
-                lecturerBadge.setLecturer(classSelectComboBox.getSelectionModel().getSelectedItem().getStudentClass().getLecturer());
+                lecturerBadge.setClassLecturer(classSelectComboBox.getSelectionModel().getSelectedItem().getStudentClass().getClassLecturer());
                 if (classFilesListView != null) {
                     classFilesListView.getItems().clear();
                     ObservableList<StudentFileObservable> studentFiles = FXCollections.observableArrayList();
@@ -690,7 +687,7 @@ public class Display extends Application {
         int classNumber = 0;
         for (ClassResultAttendance cr : classAndResults) {
             String moduleName = cr.getStudentClass().getModuleName();
-            String lecturerInitials = cr.getStudentClass().getLecturer().getFirstName().charAt(0) + "" + cr.getStudentClass().getLecturer().getLastName().charAt(0);
+            String lecturerInitials = cr.getStudentClass().getClassLecturer().getFirstName().charAt(0) + "" + cr.getStudentClass().getClassLecturer().getLastName().charAt(0);
             for (ClassTime ct : cr.getStudentClass().getClassTimes()) {
                 for (int i = ct.getStartSlot(); i <= ct.getEndSlot(); i++) {
                     TimetableBlock timetableBlock = new TimetableBlock(moduleName + "\n\n" + lecturerInitials + " (" + ct.getRoomNumber() + ")", classNumber);
@@ -729,22 +726,22 @@ public class Display extends Application {
             }
             ObservableList<String> lecturersCompleted = FXCollections.observableArrayList();
             for (ClassResultAttendance cra : classAndResults) {
-                Lecturer lecturer = cra.getStudentClass().getLecturer();
+                ClassLecturer classLecturer = cra.getStudentClass().getClassLecturer();
                 byte[] lecturerImageBytes = new byte[0];
                 try {
                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    ImageIO.write(SwingFXUtils.fromFXImage(lecturer.getLecturerImage(), null), "jpg", byteArrayOutputStream);
+                    ImageIO.write(SwingFXUtils.fromFXImage(classLecturer.getLecturerImage(), null), "jpg", byteArrayOutputStream);
                     byteArrayOutputStream.flush();
                     lecturerImageBytes = byteArrayOutputStream.toByteArray();
                     byteArrayOutputStream.close();
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
-                ContactDetails newContactDetails = new ContactDetails(lecturer.getFirstName() + " " + lecturer.getLastName(), "Lecturer", lecturer.getContactNumber(), lecturer.getEmail(), lecturerImageBytes);
+                ContactDetails newContactDetails = new ContactDetails(classLecturer.getFirstName() + " " + classLecturer.getLastName(), "ClassLecturer", classLecturer.getContactNumber(), classLecturer.getEmail(), lecturerImageBytes);
                 ContactDetailsCard contactDetailsCard = new ContactDetailsCard(stage, newContactDetails, connectionHandler.student.getStudent().getFirstName() + " " + connectionHandler.student.getStudent().getLastName(), connectionHandler.student.getStudent().getEmail());
-                if (!lecturersCompleted.contains(lecturer.getLecturerID())) {
+                if (!lecturersCompleted.contains(classLecturer.getLecturerID())) {
                     contactDetailsCards.add(contactDetailsCard);
-                    lecturersCompleted.add(lecturer.getLecturerID());
+                    lecturersCompleted.add(classLecturer.getLecturerID());
                 }
             }
             contactDetailsCardPane.getChildren().clear();

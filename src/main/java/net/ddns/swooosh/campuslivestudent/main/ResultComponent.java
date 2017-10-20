@@ -67,7 +67,7 @@ public class ResultComponent extends HBox {
         if (result.getResultName().equals("Result Name")) {
             thirdText.setText("Due Performance");
         } else if (result.getDpWeight() != 0D) {
-            thirdText.setText(String.format("%3.0f (%2d)", result.getResult() * result.getDpWeight() / 100, result.getDpWeight().intValue()));
+            thirdText.setText(String.format("%3.0f (%2d)", result.getResult() * result.getDpWeight() / 100, (int) result.getDpWeight()));
         }
         HBox thirdPane = new HBox(thirdText);
         thirdPane.getStyleClass().add("result-slide-pane");
@@ -78,7 +78,7 @@ public class ResultComponent extends HBox {
         if (result.getResultName().equals("Result Name")) {
             fourthText.setText("Final Mark");
         } else if (result.getFinalWeight() != 0D) {
-            fourthText.setText(String.format("%3.0f (%2d)", result.getResult() * result.getFinalWeight() / 100, result.getFinalWeight().intValue()));
+            fourthText.setText(String.format("%3.0f (%2d)", result.getResult() * result.getFinalWeight() / 100, (int) result.getFinalWeight()));
         }
         HBox fourthPane = new HBox(fourthText);
         fourthPane.getStyleClass().add("result-slide-pane");

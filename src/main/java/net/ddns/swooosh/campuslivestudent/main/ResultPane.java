@@ -48,7 +48,7 @@ public class ResultPane extends VBox {
         headingPane.setAlignment(Pos.CENTER);
         getChildren().add(headingPane);
 
-        getChildren().add(new ResultComponent(new Result("Result Name", 0D, 0D, 0D, 0D)));
+        getChildren().add(new ResultComponent(new Result(0, "", "Result Name", 0D, 0D, 0D, 0D)));
 
         Double dp = 0D;
         Double fm = 0D;
@@ -61,7 +61,7 @@ public class ResultPane extends VBox {
         }
 
         if (dp != 0D) {
-            Result dpResult = new Result("Due Performance", dp, 100D, 0D, 0D);
+            Result dpResult = new Result(0, "", "Due Performance", dp, 100D, 0D, 0D);
             getChildren().add(new ResultComponent(dpResult));
         }
 
@@ -101,9 +101,9 @@ public class ResultPane extends VBox {
 
         Result fmResult;
         if (classAndResult.getResults().isEmpty()) {
-            fmResult = new Result("Final Mark", -1D, 100D, 0D, 0D);
+            fmResult = new Result(0, "", "Final Mark", -1D, 100D, 0D, 0D);
         } else {
-            fmResult = new Result("Final Mark", fm, 100D, 0D, 0D);
+            fmResult = new Result(0, "", "Final Mark", fm, 100D, 0D, 0D);
         }
         getChildren().add(new ResultComponent(fmResult));
         setMaxWidth(800);

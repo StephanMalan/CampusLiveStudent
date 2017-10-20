@@ -6,7 +6,6 @@ import java.util.List;
 public class Student implements Serializable {
 
     private String studentNumber;
-    private String campus;
     private String qualification;
     private String firstName;
     private String lastName;
@@ -14,9 +13,8 @@ public class Student implements Serializable {
     private List<ClassResultAttendance> classResultAttendances;
     private String contactNumber;
 
-    public Student(String studentNumber, String campus, String qualification, String firstName, String lastName, String email,  String contactNumber, List<ClassResultAttendance> classResultAttendances) {
+    public Student(String studentNumber, String qualification, String firstName, String lastName, String email, String contactNumber, List<ClassResultAttendance> classResultAttendances) {
         this.studentNumber = studentNumber;
-        this.campus = campus;
         this.qualification = qualification;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -27,10 +25,6 @@ public class Student implements Serializable {
 
     public String getStudentNumber() {
         return studentNumber;
-    }
-
-    public String getCampus() {
-        return campus;
     }
 
     public String getQualification() {
@@ -55,5 +49,10 @@ public class Student implements Serializable {
 
     public String getContactNumber() {
         return contactNumber;
+    }
+
+    @Override
+    public String toString() {
+        return "First Name: " + firstName + "\nLast Name: " + lastName + "\nStudent Number: " + studentNumber + "\nQualification: " + qualification + "\nEmail: " + email + "\nContact Number: " + contactNumber;
     }
 }

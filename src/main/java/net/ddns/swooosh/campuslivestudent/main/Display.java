@@ -31,7 +31,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import models.all.*;
-import models.student.ClassLecturer;
+import models.all.ClassLecturer;
 
 import javax.imageio.ImageIO;
 import java.io.ByteArrayOutputStream;
@@ -737,7 +737,7 @@ public class Display extends Application {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
-                ContactDetails newContactDetails = new ContactDetails(classLecturer.getFirstName() + " " + classLecturer.getLastName(), "ClassLecturer", classLecturer.getContactNumber(), classLecturer.getEmail(), lecturerImageBytes);
+                ContactDetails newContactDetails = new ContactDetails(0, classLecturer.getFirstName() + " " + classLecturer.getLastName(), "ClassLecturer", "",  classLecturer.getContactNumber(), classLecturer.getEmail(), lecturerImageBytes);
                 ContactDetailsCard contactDetailsCard = new ContactDetailsCard(stage, newContactDetails, connectionHandler.student.getStudent().getFirstName() + " " + connectionHandler.student.getStudent().getLastName(), connectionHandler.student.getStudent().getEmail());
                 if (!lecturersCompleted.contains(classLecturer.getLecturerID())) {
                     contactDetailsCards.add(contactDetailsCard);

@@ -93,8 +93,13 @@ public class ConnectionHandler {
 
     //<editor-fold desc="Commands">
     public Boolean authorise(String studentNumber, String password) {
-        outputQueue.add("sa:" + studentNumber + ":" + password);
-        return getStringReply("sa:");
+        if (connectionType.equals("On Campus")) {
+            outputQueue.add("saf:" + studentNumber + ":" + password);
+            return getStringReply("saf:");
+        } else {
+            outputQueue.add("san:" + studentNumber + ":" + password);
+            return getStringReply("san:");
+        }
     }
 
     public Boolean isLecturerOnline(String lecturerNumber) {

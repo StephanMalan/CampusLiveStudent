@@ -809,7 +809,6 @@ public class Display extends Application {
                     lecturerImageBytes = byteArrayOutputStream.toByteArray();
                     byteArrayOutputStream.close();
                 } catch (Exception ex) {
-                    ex.printStackTrace();
                 }
                 ContactDetails newContactDetails = new ContactDetails(0, classLecturer.getFirstName() + " " + classLecturer.getLastName(), "ClassLecturer", "", classLecturer.getContactNumber(), classLecturer.getEmail(), lecturerImageBytes);
                 ContactDetailsCard contactDetailsCard = new ContactDetailsCard(stage, newContactDetails, connectionHandler.student.getStudent().getFirstName() + " " + connectionHandler.student.getStudent().getLastName(), connectionHandler.student.getStudent().getEmail());

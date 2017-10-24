@@ -2,6 +2,7 @@ package net.ddns.swooosh.campuslivestudent.main;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -42,7 +43,11 @@ public class LecturerBadge extends HBox {
 
     public void setClassLecturer(ClassLecturer classLecturer) {
         this.classLecturer = classLecturer;
-        lecturerPicture.setFill(new ImagePattern(classLecturer.getLecturerImage()));
+        if (classLecturer.getLecturerImage() == null) {
+            lecturerPicture.setFill(new ImagePattern(new Image(getClass().getClassLoader().getResourceAsStream("DefaultProfile.jpg"))));
+        } else {
+            lecturerPicture.setFill(new ImagePattern(classLecturer.getLecturerImage()));
+        }
         lecturerText.setText(classLecturer.getFirstName() + " " + classLecturer.getLastName());
     }
 

@@ -113,8 +113,7 @@ public class ConnectionHandler {
         return getStringReply("cp:");
     }
 
-    public Boolean
-    changeDefaultPassword(String newPassword) {
+    public Boolean changeDefaultPassword(String newPassword) {
         outputQueue.add("cdp:" + newPassword);
         return getStringReply("cdp:");
     }

@@ -3,6 +3,7 @@ package net.ddns.swooosh.campuslivestudent.main;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Hyperlink;
+import javafx.scene.image.Image;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -16,7 +17,11 @@ public class ContactDetailsCard extends HBox {
 
     public ContactDetailsCard(Window parent, ContactDetails contactDetails, String studentName, String studentEmail) {
         Circle contactImage = new Circle(30);
-        contactImage.setFill(new ImagePattern(contactDetails.getImage()));
+        if (contactDetails.getImage() == null) {
+            contactImage.setFill(new ImagePattern(new Image(getClass().getClassLoader().getResourceAsStream("DefaultProfile.jpg"))));
+        } else {
+            contactImage.setFill(new ImagePattern(contactDetails.getImage()));
+        }
         contactImage.setStroke(Color.BLACK);
         contactImage.setStrokeWidth(2);
         Text contactName = new Text(contactDetails.getName());

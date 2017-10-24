@@ -21,7 +21,8 @@ public class CustomDialogSkin extends Dialog<Integer> {
     public CustomDialogSkin() {
         initModality(Modality.APPLICATION_MODAL);
         initStyle(StageStyle.UNDECORATED);
-        getDialogPane().setStyle("-fx-background-color: transparent");
+        getDialogPane().setStyle("-fx-background-color: transparent;" +
+                "-fx-border-color: red");
         getDialogPane().getScene().setFill(Color.TRANSPARENT);
         ((Stage)getDialogPane().getScene().getWindow()).initStyle(StageStyle.TRANSPARENT);
     }
@@ -36,7 +37,7 @@ public class CustomDialogSkin extends Dialog<Integer> {
 
     public int showDialog() {
         setX((getOwner().getWidth() / 2) - (width / 2));
-        System.out.println(getX());
+        System.out.println(getOwner().getWidth() + " : " + width + " : " + getX());
         setY((getOwner().getHeight() / 2) - (getHeight() / 2));
         if (Display.enableAnimations.get()) {
             openAnimation();

@@ -20,6 +20,14 @@ public class UserNotification {
         alert.showAndWait();
     }
 
+    public static void showConfirmationMessage(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
     public static void showMessage(Window parent, String heading, String message) {
         new CustomDialog(parent, heading, message, new JFXButton("Ok"));
     }
@@ -46,7 +54,7 @@ public class UserNotification {
     }
 
     public static int showLecturerContactMethod(Window parent) {
-        CustomDialog customDialog = new CustomDialog(parent, "Contact ClassLecturer", "Do you want to contact lecturer by email or directly?", new JFXButton("Email"), new JFXButton("Direct Message"), new JFXButton("Cancel"));
+        CustomDialog customDialog = new CustomDialog(parent, "Contact Lecturer", "Do you want to contact lecturer by email or directly?", new JFXButton("Email"), new JFXButton("Direct Message"), new JFXButton("Cancel"));
         return customDialog.showDialog();
     }
 

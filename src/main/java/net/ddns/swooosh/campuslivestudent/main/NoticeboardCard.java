@@ -11,7 +11,7 @@ import javafx.stage.Window;
 
 public class NoticeboardCard extends StackPane {
 
-    public NoticeboardCard(Window parent, String heading, String body, Boolean notification) {
+    public NoticeboardCard(Window parent, String heading, String body, Boolean notification, int id, ConnectionHandler connectionHandler) {
         ImageView pushpinImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("Pushpin.png")));
         pushpinImageView.setFitHeight(64);
         pushpinImageView.setFitWidth(64);
@@ -32,7 +32,7 @@ public class NoticeboardCard extends StackPane {
                 "-fx-effect: null;");
         dismissButton.setOnAction(e -> {
             if (UserNotification.confirmationDialog(parent, "Dismiss Notification", "Are you sure you want to dismiss notification? Dismissed notifications is erased permanently!")) {
-
+                connectionHandler.dismissNotification(id);
             }
         });
         VBox dismissPane = new VBox(dismissButton);

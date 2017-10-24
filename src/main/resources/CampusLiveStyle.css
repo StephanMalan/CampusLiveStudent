@@ -64,6 +64,19 @@
     -fx-text-fill: white;
 }
 
+.dialog-button {
+    -fx-background-color: rgba(72, 192, 225, 0.5);
+    -fx-background-radius: 15;
+    -fx-border-radius: 15;
+    -fx-min-width: 100;
+    -fx-min-height: 30;
+    -fx-background-insets: 0;
+    -fx-border-width: 1;
+    -fx-border-color: white;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
 .settingsButton:hover {
     -fx-background-color: rgba(72, 192, 225, 0.9);
 }

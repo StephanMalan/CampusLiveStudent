@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.util.List;
@@ -34,15 +35,14 @@ public class ConnectionHandler {
     private Socket socket;
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
+    private Boolean logOut = false;
 
     public ConnectionHandler() {
-        //TODO connection
         connect();
     }
 
     //<editor-fold desc="Connection">
     private void connect() {
-        //FIXME load times are too long
         if (!connectLocal()) {
             if (!connectInternet()) {
                 UserNotification.showErrorMessage("Connection Error", "Failed to connect to CampusLive Servers!\nPlease check your network connection and try again!");
@@ -75,7 +75,8 @@ public class ConnectionHandler {
         System.out.println("Trying to connect to internet server...");
         try {
             System.setProperty("javax.net.ssl.trustStore", "src/main/resources/campuslive.store");
-            socket = SSLSocketFactory.getDefault().createSocket(INTERNET_ADDRESS, PORT);
+            socket = SSLSocketFactory.getDefault().createSocket();
+            socket.connect(new InetSocketAddress(INTERNET_ADDRESS, PORT), 1000);
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectInputStream = new ObjectInputStream(socket.getInputStream());
             System.out.println("Socket is connected");
@@ -112,18 +113,37 @@ public class ConnectionHandler {
         return getStringReply("cp:");
     }
 
-    public Boolean forgotPassword(String email) {
-        outputQueue.add("fp:" + email);
-        return getStringReply("fp:");
+    public Boolean
+    changeDefaultPassword(String newPassword) {
+        outputQueue.add("cdp:" + newPassword);
+        return getStringReply("cdp:");
+    }
+
+    public void forgotPassword(String email) {
+        outputQueue.add("fsp:" + email);
     }
 
     public void sendMessage(String message, String lecturerNumber) {
         outputQueue.add("sm:" + message + ":" + lecturerNumber);
     }
 
+    public boolean isDefaultPassword() {
+        outputQueue.add("idp:");
+        return getStringReply("idp:");
+    }
+
     public void deleteFile(int classID, String fileName) {
         new File(Display.LOCAL_CACHE + "/" + classID + "/" + fileName).delete();
         updateSavedFiles();
+    }
+
+    public void dismissNotification(int notiicationID) {
+        outputQueue.add("dn:" + notiicationID);
+    }
+
+    public void logOut() {
+        sendData("lgt:");
+        logOut = true;
     }
 
     public void sendData(String data) {
@@ -143,7 +163,9 @@ public class ConnectionHandler {
             return input;
         } catch (Exception ex) {
             ex.printStackTrace();
-            System.exit(0);
+            if (!logOut) {
+                System.exit(0);
+            }
         }
         return null;
     }
@@ -218,7 +240,7 @@ public class ConnectionHandler {
 
     private class InputProcessor extends Thread {
         public void run() {
-            while (true) {
+            while (!logOut) {
                 Object input;
                 if ((input = getReply()) != null) {
                     if (input instanceof Student) {
@@ -230,19 +252,28 @@ public class ConnectionHandler {
                         List list = (List) input;
                         if (!list.isEmpty() && list.get(0) instanceof Notice) {
                             notices.clear();
-                            notices.addAll(list);
+                            if (!((Notice) list.get(0)).getHeading().equals("NoNotice")) {
+                                notices.addAll(list);
+                            }
                             System.out.println("Updated Notices");
                         } else if (!list.isEmpty() && list.get(0) instanceof Notification) {
                             notifications.clear();
-                            notifications.addAll(list);
+                            if (!((Notification) list.get(0)).getHeading().equals("NoNotification")) {
+                                notifications.addAll(list);
+                            }
+                            System.out.println("hello? " + notifications.size());
                             System.out.println("Updated Notifications (" + notifications.size() + ")");
                         } else if (!list.isEmpty() && list.get(0) instanceof ContactDetails) {
                             contactDetails.clear();
-                            contactDetails.addAll(list);
+                            if (!((ContactDetails) list.get(0)).getName().equals("NoContactDetails")) {
+                                contactDetails.addAll(list);
+                            }
                             System.out.println("Updated Contact Details");
                         } else if (!list.isEmpty() && list.get(0) instanceof ImportantDate) {
                             importantDates.clear();
-                            importantDates.addAll(list);
+                            if (!((ImportantDate) list.get(0)).getDate().equals("NoImportantDate")) {
+                                importantDates.addAll(list);
+                            }
                             System.out.println("Updated Important Dates");
                         }
                     } else {

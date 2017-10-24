@@ -1,6 +1,5 @@
 package net.ddns.swooosh.campuslivestudent.main;
 
-import com.jfoenix.controls.JFXPopup;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
@@ -11,6 +10,8 @@ import javafx.stage.Window;
 
 public class SideTabPane extends HBox {
 
+    private ConnectionHandler connectionHandler;
+    private Display.LogOut logOut;
     private SideTab[] tabs;
     private SideTab selectedSideTab;
     private int spacing;
@@ -20,7 +21,9 @@ public class SideTabPane extends HBox {
     private CustomDialogSkin settingsDialog;
     private Window parent;
 
-    public SideTabPane(SideTab... tabs) {
+    public SideTabPane(Display.LogOut logOut, ConnectionHandler connectionHandler, SideTab... tabs) {
+        this.logOut = logOut;
+        this.connectionHandler = connectionHandler;
         this.tabs = tabs;
         extended = false;
         spacing = 10;
@@ -48,10 +51,9 @@ public class SideTabPane extends HBox {
             SideTab tab = tabs[i];
             tab.setOnMouseClicked(evt -> {
                 if (tab.getText().equals("Settings")) {
-                    new SettingsDialog(parent).showDialog();
+                    new SettingsDialog(parent, connectionHandler).showDialog();
                 } else if (tab.getText().equals("Sign Out")) {
-                    //TODO logout dialog
-                    System.exit(0);
+                    logOut.logOut();
                 } else {
                     selectedSideTab = (SideTab) evt.getSource();
                     updateSelected();

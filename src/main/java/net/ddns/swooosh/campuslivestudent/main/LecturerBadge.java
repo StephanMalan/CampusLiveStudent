@@ -1,7 +1,9 @@
 package net.ddns.swooosh.campuslivestudent.main;
 
 import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
@@ -12,22 +14,24 @@ public class LecturerBadge extends HBox {
 
     private Circle lecturerPicture;
     private Text lecturerText;
-    private HBox lecturerTextPane;
+    private VBox lecturerTextPane;
     private ClassLecturer classLecturer;
 
     public LecturerBadge() {
         lecturerPicture = new Circle(30);
-
         lecturerPicture.setStroke(Color.BLACK);
         lecturerPicture.setStrokeWidth(2);
+        Label lecturerLabel = new Label("Lecturer:               ");
+        lecturerLabel.setStyle("-fx-font-size: 12;" +
+                "-fx-text-fill: white;");
         lecturerText = new Text();
         lecturerText.setStyle("-fx-font-size: 16;" +
                 "-fx-fill: white;");
-        lecturerTextPane = new HBox(lecturerText);
-        lecturerTextPane.setMaxSize(200, 30);
-        lecturerTextPane.setMinSize(200, 30);
+        lecturerTextPane = new VBox(lecturerLabel, lecturerText);
+        lecturerTextPane.setMaxSize(200, 40);
+        lecturerTextPane.setMinSize(200, 40);
         lecturerTextPane.setAlignment(Pos.CENTER);
-        lecturerTextPane.getStyleClass().add("classLecturer-text-pane");
+        lecturerTextPane.getStyleClass().add("lecturer-text-pane");
         getChildren().addAll(lecturerTextPane, lecturerPicture);
         setSpacing(-245);
         setAlignment(Pos.CENTER);
@@ -48,5 +52,9 @@ public class LecturerBadge extends HBox {
 
     public String getLecturerEmail() {
         return classLecturer.getEmail();
+    }
+
+    public String getLecturerNumber() {
+        return classLecturer.getLecturerID();
     }
 }

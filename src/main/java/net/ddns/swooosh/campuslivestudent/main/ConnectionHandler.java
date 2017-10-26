@@ -22,7 +22,7 @@ import java.util.List;
 public class ConnectionHandler {
 
     public static final int PORT = 25760;
-    public static final String LOCAL_ADDRESS = "127.0.0.1";
+    public static final String LOCAL_ADDRESS = "10.0.0.4"; //TODO
     public static final String INTERNET_ADDRESS = "swooosh.ddns.net";
     public StudentObservable student = new StudentObservable(null);
     public volatile ObservableList<Notice> notices = FXCollections.observableArrayList();
@@ -147,7 +147,7 @@ public class ConnectionHandler {
 
     public void sendData(String data) {
         try {
-            objectOutputStream.writeUTF(data);
+            objectOutputStream.writeObject(data);
             objectOutputStream.flush();
             System.out.println("Sent data: " + data);
         } catch (Exception ex) {

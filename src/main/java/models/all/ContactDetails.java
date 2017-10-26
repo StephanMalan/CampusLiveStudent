@@ -51,13 +51,19 @@ public class ContactDetails implements Serializable {
         return email;
     }
 
+    public byte[] getImageBytes() {
+        return imageBytes;
+    }
+
     public Image getImage() {
-        if (imageBytes != null) {
-            try {
-                return SwingFXUtils.toFXImage(ImageIO.read(new ByteArrayInputStream(imageBytes)), null);
-            } catch (Exception ex) {
-            }
+        try {
+            return SwingFXUtils.toFXImage(ImageIO.read(new ByteArrayInputStream(imageBytes)), null);
+        } catch (Exception ex) {
         }
         return null;
+    }
+
+    public String getContactDetails() {
+        return "Name: " + name + "\nPosition: " + position + "\nDepartment: " + department + "\nEmail: " + contactNumber + "\nContact Number: " + contactNumber;
     }
 }

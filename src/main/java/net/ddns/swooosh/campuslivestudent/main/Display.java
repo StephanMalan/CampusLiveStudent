@@ -120,11 +120,11 @@ public class Display extends Application {
         loginLogoImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png")));
         loginLogoImageView.setFitHeight(200);
         loginLogoImageView.setFitWidth(200);
-        studentNumberTextField = new TextField("");
+        studentNumberTextField = new TextField("DV2015-0103"); //TODO
         studentNumberTextField.setPromptText("Student Number");
         studentNumberTextField.getStyleClass().add("login-fields");
         passwordField = new PasswordField();
-        passwordField.setText("");
+        passwordField.setText("password"); //TODO
         passwordField.setPromptText("Password");
         passwordField.getStyleClass().add("login-fields");
         passwordField.getStyleClass().add("login-password");
@@ -329,14 +329,14 @@ public class Display extends Application {
                         downloadProgressBar.getStyleClass().add("download-progress-bar");
                         downloadProgressBar.progressProperty().bind(file.progressProperty());
                         Text downloadPercentageText = new Text();
-                        file.progressProperty().addListener(e -> {
+                        /*file.progressProperty().addListener(e -> {
                             if (file.progressProperty().get() == 0D) {
                                 downloadPercentageText.setText("Queued");
                             } else {
                                 downloadPercentageText.setText(String.format("%.0f", file.progressProperty().get() * 100D) + "%");
                             }
-                        });
-                        //downloadPercentageText.textProperty().bind(file.progressProperty().multiply(100).asString("%.0f").concat("%"));
+                        });*/
+                        downloadPercentageText.textProperty().bind(file.progressProperty().multiply(100).asString("%.0f").concat("%"));
                         downloadPercentageText.getStyleClass().add("percentage-text");
                         StackPane downloadPane = new StackPane(downloadProgressBar, downloadPercentageText);
                         setGraphic(downloadPane);

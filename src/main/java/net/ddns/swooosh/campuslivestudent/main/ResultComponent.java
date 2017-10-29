@@ -67,7 +67,11 @@ public class ResultComponent extends HBox {
         if (result.getResultName().equals("Result Name")) {
             thirdText.setText("Due Performance");
         } else if (result.getDpWeight() != 0D) {
-            thirdText.setText(String.format("%3.0f (%2d)", result.getResult() * result.getDpWeight() / 100, (int) result.getDpWeight()));
+            if (result.getResult() == -1D) {
+                thirdText.setText(String.format("N/A (%2d)", (int) result.getDpWeight()));
+            } else {
+                thirdText.setText(String.format("%3.0f (%2d)", result.getResult() * result.getDpWeight() / 100, (int) result.getDpWeight()));
+            }
         }
         HBox thirdPane = new HBox(thirdText);
         thirdPane.getStyleClass().add("result-slide-pane");
@@ -78,7 +82,11 @@ public class ResultComponent extends HBox {
         if (result.getResultName().equals("Result Name")) {
             fourthText.setText("Final Mark");
         } else if (result.getFinalWeight() != 0D) {
-            fourthText.setText(String.format("%3.0f (%2d)", result.getResult() * result.getFinalWeight() / 100, (int) result.getFinalWeight()));
+            if (result.getResult() == -1D) {
+                fourthText.setText(String.format("N/A (%2d)", (int) result.getFinalWeight()));
+            } else {
+                fourthText.setText(String.format("%3.0f (%2d)", result.getResult() * result.getFinalWeight() / 100, (int) result.getFinalWeight()));
+            }
         }
         HBox fourthPane = new HBox(fourthText);
         fourthPane.getStyleClass().add("result-slide-pane");

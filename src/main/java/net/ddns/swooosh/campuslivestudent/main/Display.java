@@ -69,6 +69,7 @@ public class Display extends Application {
     private ListView<StudentFileObservable> classFilesListView;
     private GridPane timetableGridPane;
     private VBox resultsInnerPane;
+    private ScrollPane noticeboardScrollPane;
     private JFXMasonryPane noticeboardMasonryPane;
     private StackPane noticeboardInnerPane;
     private VBox contactDetailsCardPane;
@@ -120,7 +121,7 @@ public class Display extends Application {
         loginLogoImageView = new ImageView(new Image(getClass().getClassLoader().getResourceAsStream("CLLogo.png")));
         loginLogoImageView.setFitHeight(200);
         loginLogoImageView.setFitWidth(200);
-        studentNumberTextField = new TextField("DV2015-0103"); //TODO
+        studentNumberTextField = new TextField("DV2015-0073"); //TODO
         studentNumberTextField.setPromptText("Student Number");
         studentNumberTextField.getStyleClass().add("login-fields");
         passwordField = new PasswordField();
@@ -424,8 +425,7 @@ public class Display extends Application {
         noticeboardMasonryPane.setLayoutMode(JFXMasonryPane.LayoutMode.MASONRY);
         //noticeboardMasonryPane.setPadding(new Insets(50));
         noticeboardMasonryPane.getStyleClass().add("noticeboard-pane");
-        ScrollPane noticeboardScrollPane = new ScrollPane(noticeboardInnerPane);
-        noticeboardMasonryPane.prefHeightProperty().bind(noticeboardScrollPane.heightProperty().subtract(2D));
+        noticeboardScrollPane = new ScrollPane(noticeboardMasonryPane);
         noticeboardScrollPane.setFitToWidth(true);
         noticeboardScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         VBox noticeboardPane = new VBox(noticeboardScrollPane);
@@ -786,8 +786,12 @@ public class Display extends Application {
                 System.out.println("lol test");
                 noticeboardMasonryPane.getChildren().clear();
                 noticeboardMasonryPane.getChildren().addAll(noticePanes);
-                noticeboardInnerPane.getChildren().clear();
-                noticeboardInnerPane.getChildren().addAll(noticeboardMasonryPane);
+                noticeboardMasonryPane = new JFXMasonryPane();
+                noticeboardMasonryPane.setLayoutMode(JFXMasonryPane.LayoutMode.MASONRY);
+                noticeboardMasonryPane.prefHeightProperty().bind(noticeboardScrollPane.heightProperty().subtract(2D));
+                System.out.println("Number panes:" + noticePanes.size());
+                //noticeboardInnerPane.getChildren().clear();
+                //noticeboardInnerPane.getChildren().addAll(noticeboardMasonryPane);
             });
         }
     }
@@ -810,7 +814,7 @@ public class Display extends Application {
                     byteArrayOutputStream.close();
                 } catch (Exception ex) {
                 }
-                ContactDetails newContactDetails = new ContactDetails(0, classLecturer.getFirstName() + " " + classLecturer.getLastName(), "ClassLecturer", "", classLecturer.getContactNumber(), classLecturer.getEmail(), lecturerImageBytes);
+                ContactDetails newContactDetails = new ContactDetails(0, classLecturer.getFirstName() + " " + classLecturer.getLastName(), "Lecturer", "", classLecturer.getContactNumber(), classLecturer.getEmail(), lecturerImageBytes);
                 ContactDetailsCard contactDetailsCard = new ContactDetailsCard(stage, newContactDetails, connectionHandler.student.getStudent().getFirstName() + " " + connectionHandler.student.getStudent().getLastName(), connectionHandler.student.getStudent().getEmail());
                 if (!lecturersCompleted.contains(classLecturer.getLecturerID())) {
                     contactDetailsCards.add(contactDetailsCard);

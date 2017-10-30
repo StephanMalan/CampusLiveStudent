@@ -70,8 +70,7 @@ public class Display extends Application {
     private GridPane timetableGridPane;
     private VBox resultsInnerPane;
     private ScrollPane noticeboardScrollPane;
-    private JFXMasonryPane noticeboardMasonryPane;
-    private StackPane noticeboardInnerPane;
+    private JFXMasonryPane noticeboardInnerPane;
     private VBox contactDetailsCardPane;
     private TableView<ImportantDate> importantDateTableView;
     private VBox attendanceInnerPane;
@@ -232,7 +231,7 @@ public class Display extends Application {
         classHeadingPane.setSpacing(5);
         classHeadingPane.setAlignment(Pos.CENTER);
         lecturerBadge.setOnMouseClicked(e -> {
-            int i = UserNotification.showLecturerContactMethod(stage);
+            /*int i = UserNotification.showLecturerContactMethod(stage);
             if (i == 1) {
                 new EmailDialog(stage, lecturerBadge.getLecturerName(), lecturerBadge.getLecturerEmail(), connectionHandler.student.getStudent().getFirstName() + " " + connectionHandler.student.getStudent().getLastName(), connectionHandler.student.getStudent().getEmail()).showDialog();
             } else if (i == 2) {
@@ -241,7 +240,8 @@ public class Display extends Application {
                 } else {
                     UserNotification.showErrorMessage("Contact Lecturer", "Lecturer is not online.\nTry sending an email instead");
                 }
-            }
+            }*/
+            new EmailDialog(stage, lecturerBadge.getLecturerName(), lecturerBadge.getLecturerEmail(), connectionHandler.student.getStudent().getFirstName() + " " + connectionHandler.student.getStudent().getLastName(), connectionHandler.student.getStudent().getEmail()).showDialog();
         });
         classFilesListView = new ListView<>();
         classFilesListView.getStyleClass().add("files-list-view");
@@ -417,26 +417,26 @@ public class Display extends Application {
 
         //Setup noticeboard pane
         //<editor-fold desc="Noticeboard Pane">
-        noticeboardMasonryPane = new JFXMasonryPane();
-        noticeboardInnerPane = new StackPane(noticeboardMasonryPane);
+        noticeboardInnerPane = new JFXMasonryPane();
         populateNoticeBoard();
-        noticeboardMasonryPane.setHSpacing(10);
-        noticeboardMasonryPane.setVSpacing(10);
-        noticeboardMasonryPane.setLayoutMode(JFXMasonryPane.LayoutMode.MASONRY);
-        //noticeboardMasonryPane.setPadding(new Insets(50));
-        noticeboardMasonryPane.getStyleClass().add("noticeboard-pane");
-        noticeboardScrollPane = new ScrollPane(noticeboardMasonryPane);
+        noticeboardInnerPane.setHSpacing(10);
+        noticeboardInnerPane.setVSpacing(10);
+        noticeboardInnerPane.setLayoutMode(JFXMasonryPane.LayoutMode.MASONRY);
+        //noticeboardInnerPane.setPadding(new Insets(50));
+        noticeboardInnerPane.getStyleClass().add("noticeboard-pane");
+        ScrollPane noticeboardScrollPane = new ScrollPane(new StackPane(noticeboardInnerPane));
+        noticeboardInnerPane.prefHeightProperty().bind(noticeboardScrollPane.heightProperty().subtract(2D));
         noticeboardScrollPane.setFitToWidth(true);
         noticeboardScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         VBox noticeboardPane = new VBox(noticeboardScrollPane);
         VBox.setVgrow(noticeboardScrollPane, Priority.ALWAYS);
         noticeboardPane.setOnMouseClicked(e -> {
-            System.out.println(noticeboardMasonryPane.getWidth());
+            System.out.println(noticeboardInnerPane.getWidth());
             System.out.println(noticeboardScrollPane.getWidth());
             System.out.println(noticeboardPane.getWidth());
         });
         noticeboardScrollPane.widthProperty().addListener(e -> {
-            noticeboardMasonryPane.setMaxWidth(noticeboardScrollPane.getWidth());
+            noticeboardInnerPane.setMaxWidth(noticeboardScrollPane.getWidth());
         });
         //noticeboardMasonryPane.maxWidthProperty().bind(noticeboardScrollPane.widthProperty());
         //noticeboardMasonryPane.prefWidthProperty().bind(noticeboardScrollPane.widthProperty());
@@ -448,8 +448,19 @@ public class Display extends Application {
         contactText.getStyleClass().add("heading-text");
         contactDetailsCardPane = new VBox();
         contactDetailsCardPane.setAlignment(Pos.TOP_CENTER);
-        VBox contactPane = new VBox(contactText, contactDetailsCardPane);
-        contactPane.setSpacing(15);
+        contactDetailsCardPane.setSpacing(15);
+        ScrollPane contactScrollPane = new ScrollPane(contactDetailsCardPane);
+        contactDetailsCardPane.setOnScroll(event -> {
+            double deltaY = event.getDeltaY() * 10;
+            double width = contactScrollPane.getContent().getBoundsInLocal().getWidth();
+            double vValue = contactScrollPane.getVvalue();
+            contactScrollPane.setVvalue(vValue + -deltaY / width);
+        });
+        VBox.setVgrow(contactScrollPane, Priority.ALWAYS);
+        contactDetailsCardPane.prefHeightProperty().bind(contactScrollPane.heightProperty().subtract(46D));
+        contactScrollPane.setFitToWidth(true);
+        VBox contactPane = new VBox(contactText, contactScrollPane);
+        contactPane.setSpacing(25);
         contactPane.setPadding(new Insets(15));
         contactPane.setAlignment(Pos.CENTER);
         VBox.setVgrow(contactDetailsCardPane, Priority.ALWAYS);
@@ -770,7 +781,6 @@ public class Display extends Application {
         }
         if (noticePanes.isEmpty()) {
             Platform.runLater(() -> {
-                noticeboardMasonryPane.getChildren().clear();
                 noticeboardInnerPane.getChildren().clear();
                 Text emptyText = new Text("Nothing to show here!");
                 emptyText.setStyle("-fx-font-size: 36");
@@ -779,16 +789,12 @@ public class Display extends Application {
                 emptyTextPane.setPadding(new Insets(20));
                 emptyTextPane.setMaxSize(200, 50);
                 emptyTextPane.setRotate(-5);
-                noticeboardInnerPane.getChildren().addAll(noticeboardMasonryPane, emptyTextPane);
             });
         } else {
             Platform.runLater(() -> {
                 System.out.println("lol test");
-                noticeboardMasonryPane.getChildren().clear();
-                noticeboardMasonryPane.getChildren().addAll(noticePanes);
-                noticeboardMasonryPane = new JFXMasonryPane();
-                noticeboardMasonryPane.setLayoutMode(JFXMasonryPane.LayoutMode.MASONRY);
-                noticeboardMasonryPane.prefHeightProperty().bind(noticeboardScrollPane.heightProperty().subtract(2D));
+                noticeboardInnerPane.getChildren().clear();
+                noticeboardInnerPane.getChildren().addAll(noticePanes);
                 System.out.println("Number panes:" + noticePanes.size());
                 //noticeboardInnerPane.getChildren().clear();
                 //noticeboardInnerPane.getChildren().addAll(noticeboardMasonryPane);

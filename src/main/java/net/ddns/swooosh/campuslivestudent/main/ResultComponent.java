@@ -46,10 +46,10 @@ public class ResultComponent extends HBox {
         };
         Text secondText = new Text();
         secondText.getStyleClass().add("result-text");
-        if (result.getResult() == -1D) {
-            secondText.setText("N/A");
-        } else if (result.getResultName().equals("Result Name")) {
+        if (result.getResultName().equals("Result Name")) {
             secondText.setText("Result");
+        } else if (result.getResult() == -1D || result.getResult() == -0D) {
+            secondText.setText("N/A");
         } else {
             secondText.setText(String.format("%3.0f%s", (result.getResult() * 100) / result.getResultMax(), "%"));
         }

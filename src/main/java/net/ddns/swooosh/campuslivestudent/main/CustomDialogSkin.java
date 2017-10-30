@@ -21,8 +21,7 @@ public class CustomDialogSkin extends Dialog<Integer> {
     public CustomDialogSkin() {
         initModality(Modality.APPLICATION_MODAL);
         initStyle(StageStyle.UNDECORATED);
-        getDialogPane().setStyle("-fx-background-color: transparent;" +
-                "-fx-border-color: red");
+        getDialogPane().setStyle("-fx-background-color: transparent;");
         getDialogPane().getScene().setFill(Color.TRANSPARENT);
         ((Stage)getDialogPane().getScene().getWindow()).initStyle(StageStyle.TRANSPARENT);
     }

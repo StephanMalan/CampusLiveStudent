@@ -122,7 +122,6 @@
 
 .noteShadow {
     -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 5, 0.0, -5, 5);
-    -fx-border-color: #DB0020;
 }
 
 .noteHeading {

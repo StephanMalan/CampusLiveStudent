@@ -31,7 +31,7 @@ public class NoticeboardCard extends StackPane {
         dismissButton.setStyle("-fx-text-fill: black;" +
                 "-fx-effect: null;");
         dismissButton.setOnAction(e -> {
-            if (UserNotification.confirmationDialog(parent, "Dismiss Notification", "Are you sure you want to dismiss notification? Dismissed notifications is erased permanently!")) {
+            if (UserNotification.confirmationDialog(parent, "Dismiss Notification", "Are you sure you want to dismiss notification?\nDismissed notifications are erased permanently!")) {
                 connectionHandler.dismissNotification(id);
             }
         });

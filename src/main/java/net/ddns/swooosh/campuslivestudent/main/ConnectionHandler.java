@@ -22,7 +22,7 @@ import java.util.List;
 public class ConnectionHandler {
 
     public static final int PORT = 25760;
-    public static final String LOCAL_ADDRESS = "127.0.0.1"; //TODO
+    public static String LOCAL_ADDRESS = "10.0.0.3"; //TODO
     public static final String INTERNET_ADDRESS = "swooosh.ddns.net";
     public StudentObservable student = new StudentObservable(null);
     public volatile ObservableList<Notice> notices = FXCollections.observableArrayList();
@@ -45,7 +45,7 @@ public class ConnectionHandler {
     private void connect() {
         if (!connectLocal()) {
             if (!connectInternet()) {
-                UserNotification.showErrorMessage("Connection Error", "Failed to connect to CampusLive Servers!\nPlease check your network connection and try again!");
+                UserNotification.showErrorMessage("Connection Error", "Failed to connect to CampusLive Servers! (" + LOCAL_ADDRESS + ")\nPlease check your network connection and try again!");
                 System.out.println("Exiting..");
                 System.exit(0);
             } else {

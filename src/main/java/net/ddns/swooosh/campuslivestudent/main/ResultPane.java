@@ -60,7 +60,7 @@ public class ResultPane extends VBox {
             }
         }
 
-        if (dp != 0D) {
+        if (dp != 0D && dp != -1D) {
             Result dpResult = new Result(0, "", "Due Performance", dp, 100D, 0D, 0D);
             getChildren().add(new ResultComponent(dpResult));
         }

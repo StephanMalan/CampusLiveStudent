@@ -22,7 +22,7 @@ import java.util.List;
 public class ConnectionHandler {
 
     public static final int PORT = 25760;
-    public static String LOCAL_ADDRESS = "10.0.0.3"; //TODO
+    public static String LOCAL_ADDRESS = "127.0.0.1"; //TODO
     public static final String INTERNET_ADDRESS = "swooosh.ddns.net";
     public StudentObservable student = new StudentObservable(null);
     public volatile ObservableList<Notice> notices = FXCollections.observableArrayList();
@@ -60,7 +60,8 @@ public class ConnectionHandler {
         System.out.println("Trying to connect to local server...");
         try {
             System.setProperty("javax.net.ssl.trustStore", Display.APPLICATION_FOLDER + "/campuslive.store");
-            socket = SSLSocketFactory.getDefault().createSocket(LOCAL_ADDRESS, PORT);
+            socket = SSLSocketFactory.getDefault().createSocket();
+            socket.connect(new InetSocketAddress(LOCAL_ADDRESS, PORT), 1000);
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectInputStream = new ObjectInputStream(socket.getInputStream());
             System.out.println("Socket is connected");

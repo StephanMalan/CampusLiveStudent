@@ -270,8 +270,8 @@
     -fx-border-radius: 15;
     -fx-border-insets: -10;
     -fx-border-width: 2;
-    -fx-font-size: 20;
-    -fx-max-width: 1800;
+    -fx-font-size: 22;
+    -fx-max-width: 1200;
     -fx-min-width: 200;
 }
 
@@ -294,6 +294,10 @@
     -fx-text-fill: -fx-selection-bar-text;
 }
 
+.timetable-weekdays .column-header-background {
+    -fx-background-color: rgba(0, 48, 87, 1);
+}
+
 .file-context-menu {
     -fx-font-size: 18;
 }
@@ -311,7 +315,7 @@
 }
 
 .timetable-pane {
-    -fx-background-color: /*rgba(66, 135, 167, .7)*/#D4EAE4;
+    -fx-background-color: /*rgba(66, 135, 167, .7)*/ #D4EAE4;
     -fx-border-color: black;
 }
 

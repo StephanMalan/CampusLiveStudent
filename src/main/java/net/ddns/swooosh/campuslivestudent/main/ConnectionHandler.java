@@ -10,12 +10,11 @@ import javafx.collections.ObservableList;
 import models.all.*;
 
 import javax.net.ssl.SSLSocketFactory;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.URL;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -258,10 +257,10 @@ public class ConnectionHandler {
                             System.out.println("Updated Notices");
                         } else if (!list.isEmpty() && list.get(0) instanceof Notification) {
                             notifications.clear();
+                            System.out.println("hello? " + ((Notification) list.get(0)).getHeading());
                             if (!((Notification) list.get(0)).getHeading().equals("NoNotification")) {
                                 notifications.addAll(list);
                             }
-                            System.out.println("hello? " + notifications.size());
                             System.out.println("Updated Notifications (" + notifications.size() + ")");
                         } else if (!list.isEmpty() && list.get(0) instanceof ContactDetails) {
                             contactDetails.clear();
@@ -311,44 +310,86 @@ public class ConnectionHandler {
 
         @Override
         public void run() {
-            outputQueue.add("gf:" + file.getClassID() + ":" + file.getFileName());
-            Done:
-            while (true) {
-                FilePart filePartToRemove = null;
-                BreakSearch:
-                for (int i = inputQueue.size() - 1; i > -1; i--) {
-                    try {
-                        Object object = inputQueue.get(i);
-                        if (object instanceof FilePart) {
-                            FilePart filePart = (FilePart) object;
-                            if (filePart.getClassID() == file.getClassID() && filePart.getFileName().equals(file.getFileName())) {
-                                filePartToRemove = filePart;
-                                break BreakSearch;
+            if (connectionType.equals("Off Campus")) {
+                outputQueue.add("gff:" + file.getClassID() + ":" + file.getFileName());
+                OnlineDownload onlineDownload;
+                Done:
+                while (true) {
+                    for (int i = inputQueue.size() - 1; i > -1; i--) {
+                        try {
+                            Object object = inputQueue.get(i);
+                            if (object instanceof OnlineDownload) {
+                                onlineDownload = (OnlineDownload) object;
+                                if (onlineDownload.getClassID() == file.getClassID() && onlineDownload.getFileName().equals(file.getFileName())) {
+                                    break Done;
+                                }
                             }
+                        } catch (IndexOutOfBoundsException ex) {
                         }
-                    } catch (IndexOutOfBoundsException ex) {
                     }
                 }
-                if (filePartToRemove != null) {
-                    for (int i = 0; i < filePartToRemove.getFileBytes().length; i++) {
-                        bytes[size.get() + i] = filePartToRemove.getFileBytes()[i];
-                    }
-                    size.set(size.get() + filePartToRemove.getFileBytes().length);
-                    progress.set(1D * size.get() / bytes.length);
-                    Platform.runLater(() -> student.update());
-                    inputQueue.remove(filePartToRemove);
-                }
-                if (size.get() == file.getFileLength()) {
-                    System.out.println("File successfully downloaded!");
+                try {
                     File f = new File(Display.LOCAL_CACHE + "/" + file.getClassID() + "/" + file.getFileName());
                     f.getParentFile().mkdirs();
-                    try {
-                        Files.write(f.toPath(), bytes);
-                        updateSavedFiles();
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
+                    URL url = new URL(onlineDownload.getDropboxURL());
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                    BufferedInputStream bufferedInputStream = new BufferedInputStream(httpURLConnection.getInputStream());
+                    FileOutputStream fileOutputStream = new FileOutputStream(f);
+                    BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream, 1024);
+                    byte[] data = new byte[1024];
+                    long downloadedFileSize = 0;
+                    int input;
+                    while ((input = bufferedInputStream.read(data, 0, 1024)) >= 0) {
+                        downloadedFileSize += input;
+                        long finalDownloadedFileSize = downloadedFileSize;
+                        Platform.runLater(() -> progress.set((double) finalDownloadedFileSize / (double) file.getFileLength()));
+                        bufferedOutputStream.write(data, 0, input);
                     }
-                    break Done;
+                    bufferedOutputStream.close();
+                    bufferedInputStream.close();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            } else {
+                outputQueue.add("gf:" + file.getClassID() + ":" + file.getFileName());
+                Done:
+                while (true) {
+                    FilePart filePartToRemove = null;
+                    BreakSearch:
+                    for (int i = inputQueue.size() - 1; i > -1; i--) {
+                        try {
+                            Object object = inputQueue.get(i);
+                            if (object instanceof FilePart) {
+                                FilePart filePart = (FilePart) object;
+                                if (filePart.getClassID() == file.getClassID() && filePart.getFileName().equals(file.getFileName())) {
+                                    filePartToRemove = filePart;
+                                    break BreakSearch;
+                                }
+                            }
+                        } catch (IndexOutOfBoundsException ex) {
+                        }
+                    }
+                    if (filePartToRemove != null) {
+                        for (int i = 0; i < filePartToRemove.getFileBytes().length; i++) {
+                            bytes[size.get() + i] = filePartToRemove.getFileBytes()[i];
+                        }
+                        size.set(size.get() + filePartToRemove.getFileBytes().length);
+                        progress.set(1D * size.get() / bytes.length);
+                        Platform.runLater(() -> student.update());
+                        inputQueue.remove(filePartToRemove);
+                    }
+                    if (size.get() == file.getFileLength()) {
+                        System.out.println("File successfully downloaded!");
+                        File f = new File(Display.LOCAL_CACHE + "/" + file.getClassID() + "/" + file.getFileName());
+                        f.getParentFile().mkdirs();
+                        try {
+                            Files.write(f.toPath(), bytes);
+                            updateSavedFiles();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                        break Done;
+                    }
                 }
             }
         }

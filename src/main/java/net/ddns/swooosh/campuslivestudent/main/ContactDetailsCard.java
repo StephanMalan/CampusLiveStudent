@@ -42,8 +42,11 @@ public class ContactDetailsCard extends HBox {
         contactEmail.setStyle("-fx-effect: null");
         setStyle("-fx-background-color: white;" +
                 "-fx-border-color: black;" +
+                "-fx-border-width: 2;" +
                 "-fx-min-width: 1000;" +
-                "-fx-max-width: 1000");
+                "-fx-max-width: 1000;" +
+                "-fx-border-radius: 15;" +
+                "-fx-background-radius: 15;");
         setSpacing(25);
         setAlignment(Pos.CENTER_LEFT);
         setPadding(new Insets(5));

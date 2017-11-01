@@ -44,7 +44,7 @@ public class UserNotification {
     }
 
     public static void showFileDetails(Window parent, ClassFile classFile) {
-        CustomDialog customDialog = new CustomDialog(parent, Display.getFileNameWithoutExtension(classFile.getFileName()), "Extension: " + Display.getFileExtension(classFile.getFileName()) + "\nSize          : " + (classFile.getFileLength() / 1024) + "kB", new JFXButton("Ok"));
+        CustomDialog customDialog = new CustomDialog(parent, Display.getFileNameWithoutExtension(classFile.getFileName()), "Type:   " + Display.getFileExtension(classFile.getFileName()) + "\nSize:   " + (classFile.getFileLength() / 1024) + "kB", new JFXButton("Ok"));
         customDialog.showDialog();
     }
 
